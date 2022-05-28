@@ -15,10 +15,10 @@ carNamesArr = [
     ["אאודי","Audi"],
     ["אברת\'","Abarth"],
     ["אופל","Opel"],
-    ["איוויס","Aiways"],
+    ["איווייס","Aiways"],
     ["אינפיניטי","Infiniti"],
     ["איסוזו","Isuzu"],
-    ["אלפא רומאו","Alpha Romeo"],
+    ["אלפא רומיאו","Alpha Romeo"],
     ["אם. ג\'י. / MG","MG"],
     ["אסטון מרטין","Aston-Martin"],
     ["ב.מ.וו","BMW"],
@@ -41,7 +41,7 @@ carNamesArr = [
     ["למבורגיני","Lamborghini"],
     ["לנד רובר","Land Rover"],
     ["לקסוס","Lexus"],
-    ["מאזדה ","Mazda"],
+    ["מאזדה","Mazda"],
     ["מאן","MAN"],
     ["מיני","Mini"],
     ["מיצובישי","Mitsubishi"],
@@ -56,7 +56,7 @@ carNamesArr = [
     ["סמארט","Smart"],
     ["סקודה","Skoda"],
     ["סרס / SERES","Seres"],
-    ["פולסווגן","Volkswagen"],
+    ["פולקסווגן","Volkswagen"],
     ["פורד","Ford"],
     ["פורשה","Porsche"],
     ["פיאט","Fiat"],
@@ -70,9 +70,8 @@ carNamesArr = [
 ]
 
 purl="https://pricelist.yad2.co.il/"
-carUrlFormat="https://pricelist.yad2.co.il/search.php?ExceptionValue=%s&Exception=CarManufactur"
 
-content=""
+content = ""
 while True:
     options = Options()
     options.binary_location = r'/usr/bin/firefox-developer-edition'
@@ -88,4 +87,10 @@ while True:
         input("Press Enter after solving to continue")
     else:
         break;
-print(content)
+# create a list with car makers and page links respectively
+carLinksList=[]
+for element in carNamesArr:
+    carLinksList.append(element[1])
+    link = driver.find_element(by=By.LINK_TEXT, value=element[0]).get_attribute('href')
+    carLinksList.append(link)
+
