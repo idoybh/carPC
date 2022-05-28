@@ -84,6 +84,10 @@ while True:
     options = Options()
     options.binary_location = r'/usr/bin/firefox-developer-edition'
     options.headless = False # TODO: remove DEBUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    options.set_preference('permissions.default.image', 2)
+    options.set_preference('permissions.default.stylesheet', 2)
+    options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+    options.set_preference("javascript.enabled", False);
     driver = webdriver.Firefox(options=options)
     driver.get(purl)
     content = driver.page_source
