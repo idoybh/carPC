@@ -120,7 +120,7 @@ if (ans == "y"):
         link = link.replace("NewCars.php", "search.php")
         carLinksList.append(link)
 
-    data_columns = ("Maker", "Year", "Model", "Gear", "Engine Type", "Engine Volume", "Horse Power", "Doors", "Seats", "Price")
+    data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Horse Power", "Doors", "Seats", "Price")
     newCarsDF = pd.DataFrame(columns=data_columns)
     i=0
     currMaker=""
@@ -139,6 +139,7 @@ if (ans == "y"):
                 currYear = driver.find_element(By.NAME, "Year").get_attribute('value')
                 currModel = driver.find_element(By.NAME, "Model").get_attribute('value')
                 currPrice = driver.find_element(By.NAME, "Price").get_attribute('value')
+                currSubModel = driver.find_element(By.CLASS_NAME, "car_shortInfo").find_element(By.CLASS_NAME, 'value').text
                 generalDetails = driver.find_element(By.CLASS_NAME, "car_general_details")
                 generalDetailsList = generalDetails.find_elements(By.CLASS_NAME, "value")
                 j=1
@@ -175,6 +176,7 @@ if (ans == "y"):
                 row = { "Maker" : currMaker,
                         "Year" : currYear,
                         "Model" : currModel,
+                        "SubModel" : currSubModel,
                         "Gear" : currGear,
                         "Engine Type" : currEngineType,
                         "Engine Volume" : currVolume,
@@ -197,7 +199,7 @@ if (ans == "y"):
         "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=4&carFamily%5B%5D=5&carFamily%5B%5D=8",
         "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=9&carFamily%5B%5D=6&carFamily%5B%5D=7",
     ]
-    data_columns = ("Maker", "Year", "Model", "Gear", "Engine Type", "Engine Volume", "Horse Power", "Doors", "Seats", "Price")
+    data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Horse Power", "Doors", "Seats", "Price")
     oldCarsDF = pd.DataFrame(columns=data_columns)
 
     for link in oldCarsLinkList:
@@ -211,6 +213,7 @@ if (ans == "y"):
             currYear = driver.find_element(By.NAME, "Year").get_attribute('value')
             currPrice = driver.find_element(By.NAME, "Price").get_attribute('value')
             nameElements = driver.find_element(By.CLASS_NAME, "carName").find_elements(By.CSS_SELECTOR, '*')
+            currSubModel = driver.find_element(By.CLASS_NAME, "car_shortInfo").find_element(By.CLASS_NAME, 'value').text
             currModel = nameElements[2].text
             currMaker = carNamesArr[nameElements[0].text]
             generalDetails = driver.find_element(By.CLASS_NAME, "car_general_details")
@@ -249,6 +252,7 @@ if (ans == "y"):
             row = { "Maker" : currMaker,
                     "Year" : currYear,
                     "Model" : currModel,
+                    "SubModel" : currSubModel,
                     "Gear" : currGear,
                     "Engine Type" : currEngineType,
                     "Engine Volume" : currVolume,
