@@ -181,8 +181,8 @@ for page in carLinksList:
                     "Seats" : currSeats,
                     "Price" : currPrice }
             newCarsDF.loc[len(newCarsDF.index)] = row
-            print(newCarsDF)
+            newCarsDF.to_csv('NewCars.csv')
     i=i+1
 
-print(newCarsDF)
+print("Scraping the new cars DB is done")
 driver.close();
