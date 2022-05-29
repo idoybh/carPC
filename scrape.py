@@ -1,6 +1,7 @@
 import os
 import time
 import pandas as pd
+from collections import OrderedDict
 from datetime import date
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -70,13 +71,19 @@ engineTypeArr = {
     "דיזל": "Diesel",
     "טורבו דיזל": "Turbo Diesel",
     "חשמל": "Electrical",
+    "חשמלי": "Electrical",
+    "היברידי": "Hybrid",
+    "היברידי חשמל / דיזל": "Hybrid / Diesel",
+    "היברידי חשמל / בנזין": "Hybrid / Benzene",
+    "גט\"ד": "Gas",
+    "גפ\"ם / בנזין": "Gas / Benzene",
+    "גט\"ד / בנזין": "Gas / Benzene",
 }
 
 options = Options()
 options.binary_location = r'/usr/bin/firefox-developer-edition'
 options.set_preference('permissions.default.stylesheet', 2)
 options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-options.set_preference("javascript.enabled", False)
 driverRunning=False
 
 def navigate(url):
@@ -84,7 +91,7 @@ def navigate(url):
     global driver
     while True:
         if (not driverRunning):
-            options.headless = False
+            options.headless = True
             options.set_preference('permissions.default.image', 2)
             driver = webdriver.Firefox(options=options)
         driver.get(url)
@@ -257,6 +264,93 @@ if (ans == "y"):
             oldCarsDF.to_csv('OldCars.csv')
             
         print("Scraping the old cars DB is done")
+
+# scraping used cars
+
+ans = input("Do you want to rebuild used cars DB ? [y/N]: ")
+if (ans == "y"):
+    data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price")
+    usedCarsDF = pd.DataFrame(columns=data_columns)
+    link="https://www.yad2.co.il/vehicles/cars?priceOnly=1"
+    navigate(link)
+    pages = int(driver.find_element(By.CLASS_NAME, "numbers").find_elements(By.CSS_SELECTOR, "*")[9].text)
+    print("found " + str(pages) + " pages of posts")
+    skipNav=True
+    # building a list of all post links
+    postLinks = []
+    for page in range(1, pages + 1):
+        if (not skipNav):
+            navigate(link + "&page=" + str(page))
+        else:
+            skipNav=False
+        elements = driver.find_element(By.CLASS_NAME, "feed_list").find_elements(By.XPATH, "//div[contains(@id, 'feed_item_')]")
+        for element in elements:
+            pCode=str(element.get_attribute('item-id'))
+            if (pCode == "None"):
+                continue
+            postLinks.append("https://www.yad2.co.il/item/" + pCode)
+        print("Scraped " + str(page) + "/" + str(pages) + " pages " + str(round((page*100)/pages)) + "%")
+    postLinks = list(OrderedDict.fromkeys(postLinks)) # de-dup
+    print("Found " + str(len(postLinks)) + " posts")
+    # foreach post link
+    i=1
+    for post in postLinks:
+        navigate(post)
+        found=False
+        manCheck=driver.find_element(By.CLASS_NAME, "main_details").find_element(By.CLASS_NAME, "main_title").text
+        currMaker=""
+        currModel=""
+        for man in carNamesArr:
+            if (manCheck.find(man) != -1):
+                currMaker=carNamesArr[man]
+                currModel = manCheck.replace(man + " ", "")
+                found=True
+                break
+        if (not found):
+            continue
+        detailsElement = driver.find_element(By.CLASS_NAME, "details_wrapper")
+        currYear = int(driver.find_element(By.CLASS_NAME, "year-item").find_element(By.CLASS_NAME, 'value').text)
+        currHand = int(driver.find_element(By.CLASS_NAME, "hand-item").find_element(By.CLASS_NAME, 'value').text)
+        currVolume=0
+        if (driver.page_source.find("סמ״ק") != -1):
+            currVolume = int(driver.find_element(By.CLASS_NAME, "engine_size-item").find_element(By.CLASS_NAME, 'value').text.replace(",", ""))
+        priceText = driver.find_element(By.CLASS_NAME, "price").text
+        if (priceText.find("לחודש") != -1):
+            continue
+        currPrice = int(priceText.replace(" ₪", "").replace(",", ""))
+        currSubModel = driver.find_element(By.CLASS_NAME, "second_title").text
+        currMileage=0
+        if (driver.page_source.find("more_details_kilometers") != -1):
+            currMileage = detailsElement.find_element(By.ID, "more_details_kilometers").find_element(By.CSS_SELECTOR, "*").text
+        currEngineType=""
+        if (driver.page_source.find("more_details_engineType") != -1):
+            currEngineType = engineTypeArr[detailsElement.find_element(By.ID, "more_details_engineType").find_element(By.CSS_SELECTOR, "*").text]
+        currGear=True
+        if (driver.page_source.find("more_details_gearBox") != -1):
+            currGear = detailsElement.find_element(By.ID, "more_details_gearBox").find_element(By.CSS_SELECTOR, "*").text != "ידנית"
+        currOwner=True
+        if (driver.page_source.find("more_details_ownerID") != -1):
+            currOwner = detailsElement.find_element(By.ID, "more_details_ownerID").find_element(By.CSS_SELECTOR, "*").text == "פרטית"
+        prevOwner=True
+        if (driver.page_source.find("more_details_previousOwner") != -1):
+            prevOwner = detailsElement.find_element(By.ID, "more_details_previousOwner").find_element(By.CSS_SELECTOR, "*").text == "פרטית"
+        row = {
+            "Maker" : currMaker,
+            "Year" : currYear,
+            "Model" : currModel,
+            "SubModel" : currSubModel,
+            "Gear" : currGear,
+            "Engine Type" : currEngineType,
+            "Engine Volume" : currVolume,
+            "Mileage" : currMileage,
+            "Hand" : currHand,
+            "Ownership" : currOwner,
+            "Previous Ownership" : prevOwner,
+            "Price" : currPrice }
+        usedCarsDF.loc[len(usedCarsDF.index)] = row
+        usedCarsDF.to_csv('UsedCars.csv')
+        scraped("Scraped " + str(i) + "/" + str(len(postLinks)) + " posts " + str(round((i*100)/len(postLinks))) + "%")
+        i=i+1
 
 if (driverRunning):
     driver.close();
