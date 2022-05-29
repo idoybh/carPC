@@ -265,4 +265,5 @@ if (ans == "y"):
             
         print("Scraping the old cars DB is done")
 
-driver.close();
+if (driverRunning):
+    driver.close();
