@@ -1,14 +1,7 @@
 import os
-import requests
-import random
 import time
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import seaborn as sns
 from datetime import date
-from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
