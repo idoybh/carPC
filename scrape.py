@@ -1,11 +1,13 @@
 import os
 import requests
 import random
+import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import seaborn as sns
+from datetime import date
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -89,7 +91,7 @@ def navigate(url):
     global driver
     while True:
         if (not driverRunning):
-            options.headless = True
+            options.headless = False
             options.set_preference('permissions.default.image', 2)
             driver = webdriver.Firefox(options=options)
         driver.get(url)
@@ -137,7 +139,6 @@ if (ans == "y"):
                 currYear = driver.find_element(By.NAME, "Year").get_attribute('value')
                 currModel = driver.find_element(By.NAME, "Model").get_attribute('value')
                 currPrice = driver.find_element(By.NAME, "Price").get_attribute('value')
-                currGear = driver.find_element(By.NAME, "Price").get_attribute('value')
                 generalDetails = driver.find_element(By.CLASS_NAME, "car_general_details")
                 generalDetailsList = generalDetails.find_elements(By.CLASS_NAME, "value")
                 j=1
@@ -186,5 +187,78 @@ if (ans == "y"):
         i=i+1
 
     print("Scraping the new cars DB is done")
+
+# scraping old cars
+ans = input("Do you want to rebuild old cars DB ? [y/N]: ")
+if (ans == "y"):
+    tillYear = date.today().year - 1
+    oldCarsLinkList = [
+        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=1&carFamily%5B%5D=2&carFamily%5B%5D=3",
+        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=4&carFamily%5B%5D=5&carFamily%5B%5D=8",
+        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=9&carFamily%5B%5D=6&carFamily%5B%5D=7",
+    ]
+    data_columns = ("Maker", "Year", "Model", "Gear", "Engine Type", "Engine Volume", "Horse Power", "Doors", "Seats", "Price")
+    oldCarsDF = pd.DataFrame(columns=data_columns)
+
+    for link in oldCarsLinkList:
+        navigate(link)
+        subModelElements = driver.find_elements(By.CLASS_NAME, "SubModelLink")
+        subModelLinks = []
+        for element in subModelElements:
+            subModelLinks.append(element.get_attribute('href'))
+        for link in subModelLinks:
+            navigate(link)
+            currYear = driver.find_element(By.NAME, "Year").get_attribute('value')
+            currPrice = driver.find_element(By.NAME, "Price").get_attribute('value')
+            nameElements = driver.find_element(By.CLASS_NAME, "carName").find_elements(By.CSS_SELECTOR, '*')
+            currModel = nameElements[2].text
+            currMaker = carNamesArr[nameElements[0].text]
+            generalDetails = driver.find_element(By.CLASS_NAME, "car_general_details")
+            generalDetailsList = generalDetails.find_elements(By.CLASS_NAME, "value")
+            j=1
+            if ("תיבת הילוכים" in driver.page_source):
+                currGear = generalDetailsList[j].text != "ידני"
+                j=j+1
+            else:
+                currGear = ""
+            if ("סוג מנוע" in driver.page_source):
+                currEngineType = engineTypeArr[generalDetailsList[j].text]
+                j=j+1
+            else:
+                currEngineType = ""
+            if ("מספר דלתות" in driver.page_source):
+                currDoors = int(generalDetailsList[j].text)
+                j=j+1
+            else:
+                currDoors = 0
+            if ("מספר מושבים" in driver.page_source):
+                currSeats = int(generalDetailsList[j].text)
+                j=j+1
+            else:
+                currSeats = 0
+            if ("נפח מנוע" in driver.page_source):
+                currVolume = int(generalDetailsList[j].text.replace(',', '').replace(" סמ\"ק", ""))
+                j=j+1
+            else:
+                currVolume = 0
+            if ("מספר כוחות סוס" in driver.page_source):
+                currHorse = int(generalDetailsList[j].text.replace(" כ\"ס", ""))
+                j=j+1
+            else:
+                currHorse = 0
+            row = { "Maker" : currMaker,
+                    "Year" : currYear,
+                    "Model" : currModel,
+                    "Gear" : currGear,
+                    "Engine Type" : currEngineType,
+                    "Engine Volume" : currVolume,
+                    "Horse Power" : currHorse,
+                    "Doors" : currDoors,
+                    "Seats" : currSeats,
+                    "Price" : currPrice }
+            oldCarsDF.loc[len(oldCarsDF.index)] = row
+            oldCarsDF.to_csv('OldCars.csv')
+            
+        print("Scraping the old cars DB is done")
 
 driver.close();
