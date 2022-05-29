@@ -77,28 +77,38 @@ engineTypeArr = {
     "חשמל": "Electrical",
 }
 
-purl="https://pricelist.yad2.co.il/"
+options = Options()
+options.binary_location = r'/usr/bin/firefox-developer-edition'
+options.set_preference('permissions.default.stylesheet', 2)
+options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+options.set_preference("javascript.enabled", False)
+driverRunning=False
 
-content = ""
-while True:
-    options = Options()
-    options.binary_location = r'/usr/bin/firefox-developer-edition'
-    options.headless = False # TODO: remove DEBUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    options.set_preference('permissions.default.image', 2)
-    options.set_preference('permissions.default.stylesheet', 2)
-    options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-    options.set_preference("javascript.enabled", False);
-    driver = webdriver.Firefox(options=options)
-    driver.get(purl)
-    content = driver.page_source
-    if (content.find("Captcha Digest:") != -1):
-        print("Bot detected. Please solve the CAPTCHA")
-        options.headless = False
-        driver = webdriver.Firefox(options=options)
-        driver.get(purl)
-        input("Press Enter after solving to continue")
-    else:
-        break;
+def navigate(url):
+    global driverRunning
+    global driver
+    while True:
+        if (not driverRunning):
+            options.headless = True
+            options.set_preference('permissions.default.image', 2)
+            driver = webdriver.Firefox(options=options)
+        driver.get(url)
+        if (driver.page_source.find("Captcha Digest:") != -1):
+            driver.close()
+            driverRunning=False
+            print("Bot detected. Please solve the CAPTCHA")
+            options.headless = False
+            options.set_preference('permissions.default.image', 1)
+            driver = webdriver.Firefox(options=options)
+            driver.get(url)
+            input("Press Enter after solving to continue")
+            driver.close()
+        else:
+            driverRunning=True
+            break;
+
+navigate("https://pricelist.yad2.co.il/")
+
 # create a list with car makers and page links respectively
 carLinksList=[]
 for element in carNamesArr:
@@ -116,13 +126,13 @@ for page in carLinksList:
         currMaker=page
     else:
         # scraping each maker
-        driver.get(page)
+        navigate(page)
         subModelLinks=[]
         elements = driver.find_elements(By.CLASS_NAME, "SubModelLink")
         for element in elements:
             subModelLinks.append(element.get_attribute('href'))
         for model in subModelLinks:
-            driver.get(model)
+            navigate(model)
             currYear = driver.find_element(By.NAME, "Year").get_attribute('value')
             currModel = driver.find_element(By.NAME, "Model").get_attribute('value')
             currPrice = driver.find_element(By.NAME, "Price").get_attribute('value')
