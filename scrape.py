@@ -247,9 +247,9 @@ if (ans == "y"):
         pageElements = driver.find_element(By.ID, "selectPage").find_elements(By.TAG_NAME, "option")
         pages = len(pageElements) - 1
         subModelLinks = []
-        print("Found " + str(pages) + " pages")
         clear=False
-        for page in range(1, pages):
+        page=1
+        while (page <= pages):
             if (page > 1):
                 pageElements[page].click()
                 time.sleep(1)
@@ -265,9 +265,11 @@ if (ans == "y"):
                 subModelLinks.append(element.get_attribute('href'))
             if (clear):
                 sys.stdout.write("\033[K")
-            print("Scraped " + str(page) + "/" + str(pages) + " pages for submodels " + str(round((page*100)/pages)) + "%", end="\r")
+            print("Scraped " + str(page) + "/" + str(pages) + " pages for submodels (" + str(len(subModelLinks)) + " links) " + str(round((page*100)/pages)) + "%", end="\r")
             clear=True
             pageElements = driver.find_element(By.ID, "selectPage").find_elements(By.TAG_NAME, "option")
+            pages = len(pageElements) - 1
+            page=page+1
         subModelLinks = list(OrderedDict.fromkeys(subModelLinks)) # de-dup
         count=len(subModelLinks)
         print("Scraping " + str(count) + " submodels")
