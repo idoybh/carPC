@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import pandas as pd
 from collections import OrderedDict
@@ -230,12 +231,17 @@ if (ans == "y"):
     data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Horse Power", "Doors", "Seats", "Price")
     oldCarsDF = pd.DataFrame(columns=data_columns)
 
+    p=1
     for link in oldCarsLinkList:
         navigate(link)
         subModelElements = driver.find_elements(By.CLASS_NAME, "SubModelLink")
         subModelLinks = []
         for element in subModelElements:
             subModelLinks.append(element.get_attribute('href'))
+        count=len(subModelLinks)
+        print("Scraping " + str(count) + " submodels [PHASE " + str(p) + "/" + "3]")
+        i=1
+        clear=False
         for link in subModelLinks:
             navigate(link)
             currYear = driver.find_element(By.NAME, "Year").get_attribute('value')
@@ -290,8 +296,14 @@ if (ans == "y"):
                     "Price" : currPrice }
             oldCarsDF.loc[len(oldCarsDF.index)] = row
             oldCarsDF.to_csv('OldCars.csv')
+            if (clear):
+                sys.stdout.write("\033[K")
+            print("Scraped " + str(i) + "/" + str(count) + " submodels " + str(round((i*100)/count)) + "%", end="\r")
+            clear=True
+            i=i+1
+        p=p+1
             
-        print("Scraping the old cars DB is done")
+    print("Scraping the old cars DB is done")
 
 # scraping used cars
 
@@ -311,6 +323,7 @@ if (ans == "y"):
     skipNav=True
     # building a list of all post links
     postLinks = []
+    clear=False
     for page in range(1, pages + 1):
         if (not skipNav):
             navigate(link + "&page=" + str(page))
@@ -322,11 +335,15 @@ if (ans == "y"):
             if (pCode == "None"):
                 continue
             postLinks.append("https://www.yad2.co.il/item/" + pCode)
-        print("Scraped " + str(page) + "/" + str(pages) + " pages " + str(round((page*100)/pages)) + "%")
+        if (clear):
+            sys.stdout.write("\033[K")
+        print("Scraped " + str(page) + "/" + str(pages) + " pages " + str(round((page*100)/pages)) + "%", end="\r")
+        clear=True
     postLinks = list(OrderedDict.fromkeys(postLinks)) # de-dup
     print("Found " + str(len(postLinks)) + " posts")
     # foreach post link
     i=1
+    clear=False
     for post in postLinks:
         navigate(post)
         found=False
@@ -382,7 +399,10 @@ if (ans == "y"):
             "Price" : currPrice }
         usedCarsDF.loc[len(usedCarsDF.index)] = row
         usedCarsDF.to_csv('UsedCars.csv')
-        scraped("Scraped " + str(i) + "/" + str(len(postLinks)) + " posts " + str(round((i*100)/len(postLinks))) + "%")
+        if (clear):
+            sys.stdout.write("\033[K")
+        print("Scraped " + str(i) + "/" + str(len(postLinks)) + " posts " + str(round((i*100)/len(postLinks))) + "%", end="\r")
+        clear=True
         i=i+1
 
 if (driverRunning):
