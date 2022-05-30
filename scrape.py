@@ -116,6 +116,7 @@ else:
     ans = input("Do you want to rebuild new cars DB ? [y/N]: ")
 if (ans == "y"):
     # create a list with car makers and page links respectively
+    print("Scraping new cars...")
     navigate("https://pricelist.yad2.co.il/")
     carLinksList=[]
     for element in carNamesArr:
@@ -201,6 +202,7 @@ if (not os.path.exists("OldCars.csv")):
 else:
     ans = input("Do you want to rebuild old cars DB ? [y/N]: ")
 if (ans == "y"):
+    print("Scraping old cars...")
     tillYear = date.today().year - 1
     oldCarsLinkList = [
         "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=1&carFamily%5B%5D=2&carFamily%5B%5D=3",
@@ -281,6 +283,7 @@ if (not os.path.exists("UsedCars.csv")):
 else:
     ans = input("Do you want to rebuild used cars DB ? [y/N]: ")
 if (ans == "y"):
+    print("Scraping used cars...")
     data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price")
     usedCarsDF = pd.DataFrame(columns=data_columns)
     link="https://www.yad2.co.il/vehicles/cars?priceOnly=1"
