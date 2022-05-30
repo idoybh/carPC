@@ -222,11 +222,15 @@ else:
     ans = input("Do you want to rebuild old cars DB ? [y/N]: ")
 if (ans == "y"):
     print("Scraping old cars...")
+    sinceYear = date.today().year - 10
     tillYear = date.today().year - 1
     oldCarsLinkList = [
-        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=1&carFamily%5B%5D=2&carFamily%5B%5D=3",
-        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=4&carFamily%5B%5D=5&carFamily%5B%5D=8",
-        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=1987&toYear=" + str(tillYear) + "&carFamily%5B%5D=9&carFamily%5B%5D=6&carFamily%5B%5D=7",
+        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=" + str(sinceYear)
+                + "&toYear=" + str(tillYear) + "&carFamily%5B%5D=1&carFamily%5B%5D=2&carFamily%5B%5D=3",
+        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=" + str(sinceYear)
+                + "&toYear=" + str(tillYear) + "&carFamily%5B%5D=4&carFamily%5B%5D=5&carFamily%5B%5D=8",
+        "https://pricelist.yad2.co.il/search.php?fromPrice=-1&toPrice=-1&fromYear=" + str(sinceYear)
+                + "&toYear=" + str(tillYear) + "&carFamily%5B%5D=9&carFamily%5B%5D=6&carFamily%5B%5D=7",
     ]
     data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Horse Power", "Doors", "Seats", "Price")
     oldCarsDF = pd.DataFrame(columns=data_columns)
@@ -237,7 +241,7 @@ if (ans == "y"):
         pageElements = driver.find_element(By.ID, "selectPage").find_elements(By.TAG_NAME, "option")
         pages = len(pageElements)
         subModelLinks = []
-        print("Found " + str(pages) + " pages")
+        print("Found " + str(pages - 1) + " pages")
         clear=False
         for page in range(1, pages):
             if (page > 1):
@@ -255,9 +259,10 @@ if (ans == "y"):
                 subModelLinks.append(element.get_attribute('href'))
             if (clear):
                 sys.stdout.write("\033[K")
-            print("Scraped " + str(page) + "/" + str(pages) + " pages for submodels " + str(round((page*100)/pages)) + "%", end="\r")
+            print("Scraped " + str(page) + "/" + str(pages - 1) + " pages for submodels " + str(round((page*100)/pages)) + "%", end="\r")
             clear=True
             pageElements = driver.find_element(By.ID, "selectPage").find_elements(By.TAG_NAME, "option")
+        subModelLinks = list(OrderedDict.fromkeys(subModelLinks)) # de-dup
         count=len(subModelLinks)
         print("Scraping " + str(count) + " submodels [PHASE " + str(p) + "/" + "3]")
         i=1
