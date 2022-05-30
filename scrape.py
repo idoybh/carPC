@@ -20,14 +20,18 @@ carNamesArr = {
     "אסטון מרטין":"Aston-Martin",
     "ב.מ.וו":"BMW",
     "בנטלי":"Bently",
+    "ביואיק":"Buick",
     "ג\'י.איי.סי/ GAC":"GAC",
     "ג\'ילי - Geely":"Geely",
     "ג\'יפ / Jeep":"Jeep",
     "ג\'נסיס":"Genesis",
+    "גרייט וול":"GWM",
     "דאצ\'יה":"Dacia",
     "דודג\'":"Dodge",
     "דונגפנג":"Dongfeng",
     "די.אס / DS":"DS Automobiles",
+    "דייהו":"Daewoo",
+    "דייהטסו":"Daihatsu",
     "הונדה":"Honda",
     "הינו \ HINO":"Hino",
     "וולוו":"Volvo",
@@ -35,16 +39,24 @@ carNamesArr = {
     "טסלה":"Tesla",
     "יגואר":"Jaguar",
     "יונדאי":"Hyundai",
+    "לאדה":"Lada",
+    "לינקולן":"Lincolen",
+    "לאנצ\'יה":"Lancia",
     "למבורגיני":"Lamborghini",
     "לנד רובר":"Land Rover",
     "לקסוס":"Lexus",
+    "ליצ\'י":"Lichi",
+    "לנצ\'יה":"Lancia",
     "מאזדה":"Mazda",
+    "מזראטי":"Maserati",
     "מאן":"MAN",
     "מיני":"Mini",
     "מיצובישי":"Mitsubishi",
     "מקסוס":"Maxus",
     "מרצדס":"Mercedes-Benz",
+    "ננג\'ינג":"Nanjing",
     "ניסאן":"Nisssan",
+    "סאאב":"Saab",
     "סאנגיונג":"SsangYong",
     "סובארו":"Subaru",
     "סוזוקי":"Suzuki",
@@ -54,14 +66,17 @@ carNamesArr = {
     "סקודה":"Skoda",
     "סרס / SERES":"Seres",
     "פולקסווגן":"Volkswagen",
+    "פונטיאק":"Pontiac",
     "פורד":"Ford",
     "פורשה":"Porsche",
     "פיאט":"Fiat",
     "פיג\'ו":"Peugeot",
+    "פרארי":"Ferrari",
     "קאדילק":"Cadillac",
     "קופרה":"Cupra",
     "קיה":"Kia",
     "קרייזלר":"Chrysler",
+    "רובר":"Rover",
     "רנו":"Renault",
     "שברולט":"Chevrolet",
 }
@@ -121,9 +136,12 @@ if (ans == "y"):
     carLinksList=[]
     for element in carNamesArr:
         carLinksList.append(carNamesArr[element])
-        link = driver.find_element(By.LINK_TEXT, element).get_attribute('href')
-        link = link.replace("NewCars.php", "search.php")
-        carLinksList.append(link)
+        try:
+            link = driver.find_element(By.LINK_TEXT, element).get_attribute('href')
+            link = link.replace("NewCars.php", "search.php")
+            carLinksList.append(link)
+        except:
+            carLinksList.pop()
 
     data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Horse Power", "Doors", "Seats", "Price")
     newCarsDF = pd.DataFrame(columns=data_columns)
