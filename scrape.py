@@ -109,7 +109,11 @@ def navigate(url):
             driverRunning=True
             break;
 
-ans = input("Do you want to rebuild new cars DB ? [y/N]: ")
+ans = "n"
+if (not os.path.exists("NewCars.csv")):
+    ans = "y"
+else:
+    ans = input("Do you want to rebuild new cars DB ? [y/N]: ")
 if (ans == "y"):
     # create a list with car makers and page links respectively
     navigate("https://pricelist.yad2.co.il/")
@@ -191,7 +195,11 @@ if (ans == "y"):
     print("Scraping the new cars DB is done")
 
 # scraping old cars
-ans = input("Do you want to rebuild old cars DB ? [y/N]: ")
+ans = "n"
+if (not os.path.exists("OldCars.csv")):
+    ans = "y"
+else:
+    ans = input("Do you want to rebuild old cars DB ? [y/N]: ")
 if (ans == "y"):
     tillYear = date.today().year - 1
     oldCarsLinkList = [
@@ -267,7 +275,11 @@ if (ans == "y"):
 
 # scraping used cars
 
-ans = input("Do you want to rebuild used cars DB ? [y/N]: ")
+ans = "n"
+if (not os.path.exists("UsedCars.csv")):
+    ans = "y"
+else:
+    ans = input("Do you want to rebuild used cars DB ? [y/N]: ")
 if (ans == "y"):
     data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price")
     usedCarsDF = pd.DataFrame(columns=data_columns)
