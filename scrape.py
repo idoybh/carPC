@@ -234,10 +234,30 @@ if (ans == "y"):
     p=1
     for link in oldCarsLinkList:
         navigate(link)
-        subModelElements = driver.find_elements(By.CLASS_NAME, "SubModelLink")
+        pageElements = driver.find_element(By.ID, "selectPage").find_elements(By.TAG_NAME, "option")
+        pages = len(pageElements)
         subModelLinks = []
-        for element in subModelElements:
-            subModelLinks.append(element.get_attribute('href'))
+        print("Found " + str(pages) + " pages")
+        clear=False
+        for page in range(1, pages):
+            if (page > 1):
+                pageElements[page].click()
+                time.sleep(1)
+                try:
+                    loadingElement = driver.find_element(By.CLASS_NAME, "loadingDiv")
+                    while (loadingElement.is_displayed()):
+                        time.sleep(1)
+                except:
+                    print("", end="\r")
+                    sys.stdout.write("\033[K")
+            subModelElements = driver.find_elements(By.CLASS_NAME, "SubModelLink")
+            for element in subModelElements:
+                subModelLinks.append(element.get_attribute('href'))
+            if (clear):
+                sys.stdout.write("\033[K")
+            print("Scraped " + str(page) + "/" + str(pages) + " pages for submodels " + str(round((page*100)/pages)) + "%", end="\r")
+            clear=True
+            pageElements = driver.find_element(By.ID, "selectPage").find_elements(By.TAG_NAME, "option")
         count=len(subModelLinks)
         print("Scraping " + str(count) + " submodels [PHASE " + str(p) + "/" + "3]")
         i=1
