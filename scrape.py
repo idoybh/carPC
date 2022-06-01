@@ -184,22 +184,22 @@ if (ans == "y"):
                     j=j+1
                 else:
                     currEngineType = ""
-                if ("מספר דלתות" in driver.page_source):
+                if ("מספר דלתות" in driver.page_source and generalDetailsList[j].text.isdigit()):
                     currDoors = int(generalDetailsList[j].text)
                     j=j+1
                 else:
                     currDoors = 0
-                if ("מספר מושבים" in driver.page_source):
+                if ("מספר מושבים" in driver.page_source and generalDetailsList[j].text.isdigit()):
                     currSeats = int(generalDetailsList[j].text)
                     j=j+1
                 else:
                     currSeats = 0
-                if ("נפח מנוע" in driver.page_source):
+                if ("נפח מנוע" in driver.page_source and generalDetailsList[j].text.replace(',', '').replace(" סמ\"ק", "").isdigit):
                     currVolume = int(generalDetailsList[j].text.replace(',', '').replace(" סמ\"ק", ""))
                     j=j+1
                 else:
                     currVolume = 0
-                if ("מספר כוחות סוס" in driver.page_source):
+                if ("מספר כוחות סוס" in driver.page_source and generalDetailsList[j].text.replace(" כ\"ס", "").isdigit()):
                     currHorse = int(generalDetailsList[j].text.replace(" כ\"ס", ""))
                     j=j+1
                 else:
@@ -304,22 +304,22 @@ if (ans == "y"):
                 j=j+1
             else:
                 currEngineType = ""
-            if ("מספר דלתות" in driver.page_source):
+            if ("מספר דלתות" in driver.page_source and generalDetailsList[j].text.isdigit()):
                 currDoors = int(generalDetailsList[j].text)
                 j=j+1
             else:
                 currDoors = 0
-            if ("מספר מושבים" in driver.page_source):
+            if ("מספר מושבים" in driver.page_source and generalDetailsList[j].text.isdigit()):
                 currSeats = int(generalDetailsList[j].text)
                 j=j+1
             else:
                 currSeats = 0
-            if ("נפח מנוע" in driver.page_source):
+            if ("נפח מנוע" in driver.page_source and generalDetailsList[j].text.replace(',', '').replace(" סמ\"ק", "").isdigit()):
                 currVolume = int(generalDetailsList[j].text.replace(',', '').replace(" סמ\"ק", ""))
                 j=j+1
             else:
                 currVolume = 0
-            if ("מספר כוחות סוס" in driver.page_source):
+            if ("מספר כוחות סוס" in driver.page_source and generalDetailsList[j].text.replace(" כ\"ס", "").isdigit()):
                 currHorse = int(generalDetailsList[j].text.replace(" כ\"ס", ""))
                 j=j+1
             else:
@@ -343,6 +343,7 @@ if (ans == "y"):
             clear=True
             i=i+1
         p=p+1
+        print()
             
     print("Scraping the old cars DB is done")
 
