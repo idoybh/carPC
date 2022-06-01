@@ -274,6 +274,7 @@ if (ans == "y"):
             page=page+1
         subModelLinks = list(OrderedDict.fromkeys(subModelLinks)) # de-dup
         count=len(subModelLinks)
+        print()
         print("Scraping " + str(count) + " submodels")
         i=1
         clear=False
@@ -284,7 +285,12 @@ if (ans == "y"):
             nameElements = driver.find_element(By.CLASS_NAME, "carName").find_elements(By.CSS_SELECTOR, '*')
             currSubModel = driver.find_element(By.CLASS_NAME, "car_shortInfo").find_element(By.CLASS_NAME, 'value').text
             currModel = nameElements[2].text
-            currMaker = carNamesArr[nameElements[0].text]
+            try:
+                currMaker = carNamesArr[nameElements[0].text]
+            except:
+                print()
+                print("Maker " + currMaker + " not found")
+                continue
             generalDetails = driver.find_element(By.CLASS_NAME, "car_general_details")
             generalDetailsList = generalDetails.find_elements(By.CLASS_NAME, "value")
             j=1
