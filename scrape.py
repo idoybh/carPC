@@ -446,6 +446,28 @@ if (ans == "y"):
         print("Scraped " + str(i) + "/" + str(len(postLinks)) + " posts " + str(round((i*100)/len(postLinks))) + "%", end="\r")
         clear=True
         i=i+1
+    print()
 
 if (driverRunning):
     driver.close();
+
+print("De-dupping the databases")
+newCarsDF = pd.read_csv('NewCars.csv', index_col=[0])
+newCarsDF.drop_duplicates(ignore_index=True, inplace=True)
+newCarsDF.to_csv('NewCars.csv')
+oldCarsDF = pd.read_csv('OldCars.csv', index_col=[0])
+oldCarsDF.drop_duplicates(ignore_index=True, inplace=True)
+oldCarsDF.to_csv('OldCars.csv')
+usedCarsDF = pd.read_csv('UsedCars.csv', index_col=[0])
+usedCarsDF.drop_duplicates(ignore_index=True, inplace=True)
+usedCarsDF.to_csv('UsedCars.csv')
+print("Resulting databases:")
+print()
+print("New cars (" + str(len(newCarsDF)) + " entries):")
+print(newCarsDF)
+print()
+print("Old cars (" + str(len(oldCarsDF)) + " entries):")
+print(oldCarsDF)
+print()
+print("Used cars (" + str(len(usedCarsDF)) + " entries):")
+print(usedCarsDF)
