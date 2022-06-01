@@ -124,7 +124,9 @@ def navigate(url):
             options.set_preference('permissions.default.image', 1)
             driver = webdriver.Firefox(options=options)
             driver.get(url)
-            input("Press Enter after solving to continue")
+            while (driver.page_source.find("Captcha Digest:") != -1):
+                time.sleep(3)
+            print("CAPTCHA solved")
             driver.close()
         else:
             driverRunning=True
