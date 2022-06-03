@@ -130,3 +130,6 @@ dmypy.json
 
 # Database files
 *.csv
+
+# Backup files
+*.tar.gz

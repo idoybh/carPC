@@ -116,7 +116,9 @@ def navigate(url):
             options.set_preference('permissions.default.image', 2)
             driver = webdriver.Firefox(options=options)
         driver.get(url)
-        if (driver.page_source.find("Captcha Digest:") != -1):
+        time.sleep(3)
+        if (driver.page_source.find("Captcha Digest:") != -1
+                or driver.current_url.find("validate.perfdrive.com") != -1):
             driver.close()
             driverRunning=False
             print("Bot detected. Please solve the CAPTCHA")
@@ -126,8 +128,11 @@ def navigate(url):
             driver.get(url)
             while (driver.page_source.find("Captcha Digest:") != -1):
                 time.sleep(3)
-            print("CAPTCHA solved")
+            print("CAPTCHA solved. Press Enter to continue")
+            input()
             driver.close()
+        elif (driver.page_source.find("502 Bad Gateway") != -1):
+            time.sleep(5) # just sleep for 5s and try again
         else:
             driverRunning=True
             break;
