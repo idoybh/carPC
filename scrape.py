@@ -373,7 +373,9 @@ if (ans == "y"):
     print("Scraping used cars...")
     data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price")
     usedCarsDF = pd.DataFrame(columns=data_columns)
-    link="https://www.yad2.co.il/vehicles/cars?priceOnly=1"
+    sinceYear = date.today().year - 10
+    tillYear = date.today().year
+    link="https://www.yad2.co.il/vehicles/cars?year=" + str(sinceYear) + "-" + str(tillYear) + "&priceOnly=1"
     navigate(link)
     pages = int(driver.find_element(By.CLASS_NAME, "numbers").find_elements(By.CSS_SELECTOR, "*")[9].text)
     print("found " + str(pages) + " pages of posts")
