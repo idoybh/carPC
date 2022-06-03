@@ -380,8 +380,7 @@ if (ans == "y"):
     pages = int(driver.find_element(By.CLASS_NAME, "numbers").find_elements(By.CSS_SELECTOR, "*")[9].text)
     print("found " + str(pages) + " pages of posts")
     skipNav=True
-    # building a list of all post links
-    postLinks = []
+    pCount=0
     clear=False
     if (pagesToAdd == -1):
         pagesToAdd = pages + 1
@@ -399,76 +398,71 @@ if (ans == "y"):
             if (pCode == "None"):
                 continue
             postLinks.append("https://www.yad2.co.il/item/" + pCode)
+        for post in postLinks:
+            navigate(post)
+            found=False
+            try:
+                manCheck = driver.find_element(By.CLASS_NAME, "main_details").find_element(By.CLASS_NAME, "main_title").text
+            except:
+                continue # post is no longer valid
+            currMaker=""
+            currModel=""
+            for man in carNamesArr:
+                if (manCheck.find(man) != -1):
+                    currMaker=carNamesArr[man]
+                    currModel = manCheck.replace(man + " ", "")
+                    found=True
+                    break
+            if (not found):
+                continue
+            detailsElement = driver.find_element(By.CLASS_NAME, "details_wrapper")
+            currYear = int(driver.find_element(By.CLASS_NAME, "year-item").find_element(By.CLASS_NAME, 'value').text)
+            currHand = int(driver.find_element(By.CLASS_NAME, "hand-item").find_element(By.CLASS_NAME, 'value').text)
+            currVolume=0
+            if (driver.page_source.find("סמ״ק") != -1):
+                currVolume = int(driver.find_element(By.CLASS_NAME, "engine_size-item").find_element(By.CLASS_NAME, 'value').text.replace(",", ""))
+            priceText = driver.find_element(By.CLASS_NAME, "price").text
+            if (priceText.find("לחודש") != -1):
+                continue
+            currPrice = int(priceText.replace(" ₪", "").replace(",", ""))
+            currSubModel = driver.find_element(By.CLASS_NAME, "second_title").text
+            currMileage=0
+            if (driver.page_source.find("more_details_kilometers") != -1):
+                currMileage = detailsElement.find_element(By.ID, "more_details_kilometers").find_element(By.CSS_SELECTOR, "*").text
+            currEngineType=""
+            if (driver.page_source.find("more_details_engineType") != -1):
+                currEngineType = engineTypeArr[detailsElement.find_element(By.ID, "more_details_engineType").find_element(By.CSS_SELECTOR, "*").text]
+            currGear=True
+            if (driver.page_source.find("more_details_gearBox") != -1):
+                currGear = detailsElement.find_element(By.ID, "more_details_gearBox").find_element(By.CSS_SELECTOR, "*").text != "ידנית"
+            currOwner=True
+            if (driver.page_source.find("more_details_ownerID") != -1):
+                currOwner = detailsElement.find_element(By.ID, "more_details_ownerID").find_element(By.CSS_SELECTOR, "*").text == "פרטית"
+            prevOwner=True
+            if (driver.page_source.find("more_details_previousOwner") != -1):
+                prevOwner = detailsElement.find_element(By.ID, "more_details_previousOwner").find_element(By.CSS_SELECTOR, "*").text == "פרטית"
+            row = {
+                "Maker" : currMaker,
+                "Year" : currYear,
+                "Model" : currModel,
+                "SubModel" : currSubModel,
+                "Gear" : currGear,
+                "Engine Type" : currEngineType,
+                "Engine Volume" : currVolume,
+                "Mileage" : currMileage,
+                "Hand" : currHand,
+                "Ownership" : currOwner,
+                "Previous Ownership" : prevOwner,
+                "Price" : currPrice }
+            usedCarsDF.loc[len(usedCarsDF.index)] = row
+            usedCarsDF.to_csv('UsedCars.csv')
+            pCount=pCount+1
         if (clear):
             sys.stdout.write("\033[K")
-        print("Scraped " + str(page) + "/" + str(pages) + " pages " + str(round((page*100)/pages)) + "%", end="\r")
+        print("Scraped " + str(page) + "/" + str(pages) + " pages (" + str(pCount) + " posts) " + str(round((page*100)/pages)) + "%", end="\r")
         clear=True
-    postLinks = list(OrderedDict.fromkeys(postLinks)) # de-dup
-    print("Found " + str(len(postLinks)) + " posts")
-    # foreach post link
-    i=1
-    clear=False
-    for post in postLinks:
-        navigate(post)
-        found=False
-        manCheck=driver.find_element(By.CLASS_NAME, "main_details").find_element(By.CLASS_NAME, "main_title").text
-        currMaker=""
-        currModel=""
-        for man in carNamesArr:
-            if (manCheck.find(man) != -1):
-                currMaker=carNamesArr[man]
-                currModel = manCheck.replace(man + " ", "")
-                found=True
-                break
-        if (not found):
-            continue
-        detailsElement = driver.find_element(By.CLASS_NAME, "details_wrapper")
-        currYear = int(driver.find_element(By.CLASS_NAME, "year-item").find_element(By.CLASS_NAME, 'value').text)
-        currHand = int(driver.find_element(By.CLASS_NAME, "hand-item").find_element(By.CLASS_NAME, 'value').text)
-        currVolume=0
-        if (driver.page_source.find("סמ״ק") != -1):
-            currVolume = int(driver.find_element(By.CLASS_NAME, "engine_size-item").find_element(By.CLASS_NAME, 'value').text.replace(",", ""))
-        priceText = driver.find_element(By.CLASS_NAME, "price").text
-        if (priceText.find("לחודש") != -1):
-            continue
-        currPrice = int(priceText.replace(" ₪", "").replace(",", ""))
-        currSubModel = driver.find_element(By.CLASS_NAME, "second_title").text
-        currMileage=0
-        if (driver.page_source.find("more_details_kilometers") != -1):
-            currMileage = detailsElement.find_element(By.ID, "more_details_kilometers").find_element(By.CSS_SELECTOR, "*").text
-        currEngineType=""
-        if (driver.page_source.find("more_details_engineType") != -1):
-            currEngineType = engineTypeArr[detailsElement.find_element(By.ID, "more_details_engineType").find_element(By.CSS_SELECTOR, "*").text]
-        currGear=True
-        if (driver.page_source.find("more_details_gearBox") != -1):
-            currGear = detailsElement.find_element(By.ID, "more_details_gearBox").find_element(By.CSS_SELECTOR, "*").text != "ידנית"
-        currOwner=True
-        if (driver.page_source.find("more_details_ownerID") != -1):
-            currOwner = detailsElement.find_element(By.ID, "more_details_ownerID").find_element(By.CSS_SELECTOR, "*").text == "פרטית"
-        prevOwner=True
-        if (driver.page_source.find("more_details_previousOwner") != -1):
-            prevOwner = detailsElement.find_element(By.ID, "more_details_previousOwner").find_element(By.CSS_SELECTOR, "*").text == "פרטית"
-        row = {
-            "Maker" : currMaker,
-            "Year" : currYear,
-            "Model" : currModel,
-            "SubModel" : currSubModel,
-            "Gear" : currGear,
-            "Engine Type" : currEngineType,
-            "Engine Volume" : currVolume,
-            "Mileage" : currMileage,
-            "Hand" : currHand,
-            "Ownership" : currOwner,
-            "Previous Ownership" : prevOwner,
-            "Price" : currPrice }
-        usedCarsDF.loc[len(usedCarsDF.index)] = row
-        usedCarsDF.to_csv('UsedCars.csv')
-        if (clear):
-            sys.stdout.write("\033[K")
-        print("Scraped " + str(i) + "/" + str(len(postLinks)) + " posts " + str(round((i*100)/len(postLinks))) + "%", end="\r")
-        clear=True
-        i=i+1
     print()
+    print("Done scraping " + str(pCount) + " posts")
 
 if (driverRunning):
     driver.close();
