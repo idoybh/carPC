@@ -355,10 +355,20 @@ if (ans == "y"):
 # scraping used cars
 
 ans = "n"
+pagesToAdd=-1
+startPage=1
 if (not os.path.exists("UsedCars.csv")):
     ans = "y"
 else:
     ans = input("Do you want to rebuild used cars DB ? [y/N]: ")
+    if (ans != 'y'):
+        ans = input("Do you want to add to the database ? [n.o pages/N]: ")
+        if (ans.isdigit()):
+            pagesToAdd = int(ans)
+            ans = input("Offset pages [n.o pages/1]: ")
+            if (ans.isdigit()):
+                startPage = int(ans)
+            ans='y'
 if (ans == "y"):
     print("Scraping used cars...")
     data_columns = ("Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price")
@@ -371,7 +381,12 @@ if (ans == "y"):
     # building a list of all post links
     postLinks = []
     clear=False
-    for page in range(1, pages + 1):
+    if (pagesToAdd == -1):
+        pagesToAdd = pages + 1
+    else:
+        usedCarsDF = pd.read_csv('UsedCars.csv', index_col=[0])
+    for page in range(startPage, pagesToAdd + 1):
+        postLinks = []
         if (not skipNav):
             navigate(link + "&page=" + str(page))
         else:
