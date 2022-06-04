@@ -128,8 +128,8 @@ def navigate(url):
             driver.get(url)
             while (driver.page_source.find("Captcha Digest:") != -1):
                 time.sleep(3)
-            print("CAPTCHA solved. Press Enter to continue")
-            input()
+            print("CAPTCHA solved")
+            time.sleep(3)
             driver.close()
         elif (driver.page_source.find("502 Bad Gateway") != -1):
             time.sleep(5) # just sleep for 5s and try again
