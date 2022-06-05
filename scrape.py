@@ -428,7 +428,7 @@ if (ans == "y"):
             currSubModel = driver.find_element(By.CLASS_NAME, "second_title").text
             currMileage=0
             if (driver.page_source.find("more_details_kilometers") != -1):
-                currMileage = detailsElement.find_element(By.ID, "more_details_kilometers").find_element(By.CSS_SELECTOR, "*").text
+                currMileage = detailsElement.find_element(By.ID, "more_details_kilometers").find_element(By.CSS_SELECTOR, "*").text.replace(",", "")
             currEngineType=""
             if (driver.page_source.find("more_details_engineType") != -1):
                 currEngineType = engineTypeArr[detailsElement.find_element(By.ID, "more_details_engineType").find_element(By.CSS_SELECTOR, "*").text]
