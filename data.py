@@ -153,6 +153,27 @@ while True:
         plt.bar(makers, posts)
         plt.bar(makers, used, color="red")
         plt.show()
+
+        # average price ; N/O Posts ; sum of all prices
+        #       y       ;     x     ;      size
+
+        # !! using posts and makers lists from previous graphs !!
+        maxP = unifiedDB['Price'].max()
+        colors = plt.cm.gist_ncar(np.linspace(0,1,len(makers)))
+        pricesSum = []
+        prices.clear()
+        for maker in makers:
+            pRows = unifiedDB.loc[unifiedDB['Maker'] == maker]['Price']
+            pricesSum.append((pRows.sum() / maxP) * 200)
+            prices.append(pRows.mean())
+        plt.scatter(posts, prices, pricesSum, c=colors, alpha=0.4)
+        plt.title("Maker estimated market value\nsize = sum of all prices")
+        plt.xlabel("N/O Posts")
+        plt.ylabel("Average Price")
+        for i, maker in enumerate(makers):
+            plt.annotate(maker, (posts[i], prices[i]))
+        plt.show()
+
     elif (ans == '2'):
         time.sleep(1)
     elif (ans == '3'):
