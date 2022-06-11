@@ -17,7 +17,6 @@ while True:
         time.sleep(5)
     if (ans == '2'):
         import data
-        time.sleep(5)
     elif (ans == 'q'):
         exit(0)
     else:
