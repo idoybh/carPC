@@ -237,38 +237,47 @@ while True:
         # average price per model
         models = subDB['Model'].drop_duplicates().to_list()
         models.sort()
-        selectedDB = subDB.loc['New':'Old'] # plotting non used cars
+        prices = []
+        found = False
+        selectedDB = subDB
+        if ('New' in subDB.index or 'Old' in subDB.index):
+            selectedDB = subDB.loc['New':'Old'] # plotting non used cars
+            found = True
         ans = input("Select a year (2012-2022 or a = all): ")
         if (ans != 'a'):
             selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
-        ttlAverage = selectedDB['Price'].mean()    
-        prices = []
-        for model in models:
-            prices.append(selectedDB.loc[selectedDB['Model'] == model]['Price'].mean())
-        plt.bar(models, prices)
-        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='b')
+        if (found):
+            ttlAverage = selectedDB['Price'].mean()        
+            for model in models:
+                prices.append(selectedDB.loc[selectedDB['Model'] == model]['Price'].mean())
+            plt.bar(models, prices)
+            plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='b')
 
-        selectedDB = subDB.loc['Used'] # plotting used
-        if (ans != 'a'):
-            selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
-        ttlAverage = selectedDB['Price'].mean()
-        prices.clear()
-        for model in models:
-            prices.append(selectedDB.loc[selectedDB['Model'] == model]['Price'].mean())
-        colors = { 'New':'blue', 'Used':'red', 'New avg':'blue', 'Used avg':'red' }
-        labels = list(colors.keys())
-        handles = []
-        handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[0]]))
-        handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[1]]))
-        handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[2]], linestyle="--"))
-        handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[3]], linestyle="--"))
-        plt.bar(models, prices, color='r', alpha=0.2)
-        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
-        plt.legend(handles, labels)
-        plt.title("Average price per model")
-        plt.xlabel("Model")
-        plt.ylabel("Price")
-        plt.show()
+        foundUsed = False
+        if ('Used' in subDB.index):
+            selectedDB = subDB.loc['Used'] # plotting used
+            foundUsed = True
+            if (ans != 'a'):
+                selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
+            ttlAverage = selectedDB['Price'].mean()
+            prices.clear()
+            for model in models:
+                prices.append(selectedDB.loc[selectedDB['Model'] == model]['Price'].mean())
+            plt.bar(models, prices, color='r', alpha=0.2)
+            plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
+        if (found or foundUsed):
+            colors = { 'New':'blue', 'Used':'red', 'New avg':'blue', 'Used avg':'red' }
+            labels = list(colors.keys())
+            handles = []
+            handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[0]]))
+            handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[1]]))
+            handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[2]], linestyle="--"))
+            handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[3]], linestyle="--"))
+            plt.legend(handles, labels)
+            plt.title("Average price per model")
+            plt.xlabel("Model")
+            plt.ylabel("Price")
+            plt.show()
 
         # average price ; N/O Posts ; sum of all prices
         #       y       ;     x     ;      size
@@ -317,38 +326,47 @@ while True:
         # average price per sub-model
         subModels = subDB['SubModel'].drop_duplicates().to_list()
         subModels.sort()
-        selectedDB = subDB.loc['New':'Old'] # plotting non used cars
+        prices = []
+        found=False
+        selectedDB = subDB
+        if ('New' in subDB.index or 'Old' in subDB.index):
+            selectedDB = subDB.loc['New':'Old'] # plotting non used cars
+            found = True
         ans = input("Select a year (2012-2022 or a = all): ")
         if (ans != 'a'):
             selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
-        ttlAverage = selectedDB['Price'].mean()    
-        prices = []
-        for subModel in subModels:
-            prices.append(selectedDB.loc[selectedDB['SubModel'] == subModel]['Price'].mean())
-        plt.bar(subModels, prices)
-        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='b')
+        if (found):
+            ttlAverage = selectedDB['Price'].mean()    
+            for subModel in subModels:
+                prices.append(selectedDB.loc[selectedDB['SubModel'] == subModel]['Price'].mean())
+            plt.bar(subModels, prices)
+            plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='b')
 
-        selectedDB = subDB.loc['Used'] # plotting used
-        if (ans != 'a'):
-            selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
-        ttlAverage = selectedDB['Price'].mean()
-        prices.clear()
-        for subModel in subModels:
-            prices.append(selectedDB.loc[selectedDB['SubModel'] == subModel]['Price'].mean())
-        colors = { 'New':'blue', 'Used':'red', 'New avg':'blue', 'Used avg':'red' }
-        labels = list(colors.keys())
-        handles = []
-        handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[0]]))
-        handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[1]]))
-        handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[2]], linestyle="--"))
-        handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[3]], linestyle="--"))
-        plt.bar(subModels, prices, color='r', alpha=0.2)
-        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
-        plt.legend(handles, labels)
-        plt.title("Average price per sub-model")
-        plt.xlabel("Sub-Model")
-        plt.ylabel("Price")
-        plt.show()
+        foundUsed = False
+        if ('Used' in subDB.index):
+            foundUsed = True
+            selectedDB = subDB.loc['Used'] # plotting used
+            if (ans != 'a'):
+                selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
+            ttlAverage = selectedDB['Price'].mean()
+            prices.clear()
+            for subModel in subModels:
+                prices.append(selectedDB.loc[selectedDB['SubModel'] == subModel]['Price'].mean())
+            plt.bar(subModels, prices, color='r', alpha=0.2)
+            plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
+        if (foundUsed or found):
+            colors = { 'New':'blue', 'Used':'red', 'New avg':'blue', 'Used avg':'red' }
+            labels = list(colors.keys())
+            handles = []
+            handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[0]]))
+            handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[1]]))
+            handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[2]], linestyle="--"))
+            handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[3]], linestyle="--"))
+            plt.legend(handles, labels)
+            plt.title("Average price per sub-model")
+            plt.xlabel("Sub-Model")
+            plt.ylabel("Price")
+            plt.show()
 
         # average price ; N/O Posts ; sum of all prices
         #       y       ;     x     ;      size
