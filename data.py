@@ -298,7 +298,84 @@ while True:
         plt.show()
             
     elif (ans == '3'): # by model
-        time.sleep(1)
+        makers = unifiedDB['Maker'].drop_duplicates().to_list()
+        makers.sort()
+        print("Choose a maker:")
+        for i, maker in enumerate(makers):
+            print(str(i) + ". " + maker)
+        maker = makers[int(input("> "))]
+        subDB = unifiedDB.loc[unifiedDB['Maker'] == maker]
+
+        models = subDB['Model'].drop_duplicates().to_list()
+        models.sort()
+        print("Choose a model:")
+        for i, model in enumerate(models):
+            print(str(i) + ". " + model)
+        model = models[int(input("> "))]
+        subDB = subDB.loc[subDB['Model'] == model]
+
+        # average price per sub-model
+        subModels = subDB['SubModel'].drop_duplicates().to_list()
+        subModels.sort()
+        selectedDB = subDB.loc['New':'Old'] # plotting non used cars
+        ans = input("Select a year (2012-2022 or a = all): ")
+        if (ans != 'a'):
+            selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
+        ttlAverage = selectedDB['Price'].mean()    
+        prices = []
+        for subModel in subModels:
+            prices.append(selectedDB.loc[selectedDB['SubModel'] == subModel]['Price'].mean())
+        plt.bar(subModels, prices)
+        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='b')
+
+        selectedDB = subDB.loc['Used'] # plotting used
+        if (ans != 'a'):
+            selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
+        ttlAverage = selectedDB['Price'].mean()
+        prices.clear()
+        for subModel in subModels:
+            prices.append(selectedDB.loc[selectedDB['SubModel'] == subModel]['Price'].mean())
+        colors = { 'New':'blue', 'Used':'red', 'New avg':'blue', 'Used avg':'red' }
+        labels = list(colors.keys())
+        handles = []
+        handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[0]]))
+        handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[1]]))
+        handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[2]], linestyle="--"))
+        handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[3]], linestyle="--"))
+        plt.bar(subModels, prices, color='r', alpha=0.2)
+        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
+        plt.legend(handles, labels)
+        plt.title("Average price per sub-model")
+        plt.xlabel("Sub-Model")
+        plt.ylabel("Price")
+        plt.show()
+
+        # average price ; N/O Posts ; sum of all prices
+        #       y       ;     x     ;      size
+
+        # !! using subModels list from previous graph !!
+        ttlAverage = subDB['Price'].mean()
+        maxP = subDB['Price'].max()
+        prices.clear()
+        pricesSum = []
+        posts = []
+        colors = plt.cm.gist_ncar(np.linspace(0,0.9,len(subModels)))
+        for subModel in subModels:
+            pRows = subDB.loc[subDB['SubModel'] == subModel]['Price']
+            prices.append(pRows.mean())
+            pricesSum.append((pRows.sum() / maxP) * 200)
+            posts.append(len(subDB.loc[subDB['SubModel'] == subModel]))
+        plt.scatter(posts, prices, pricesSum, c=colors, alpha=0.4)
+        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
+        handles = [plt.Line2D((0,0), (1,1), color='red', linestyle="--")]
+        labels = ['average price']
+        plt.legend(handles, labels)
+        plt.title("Sub-Model estimated market value\nsize = sum of all prices")
+        plt.xlabel("N/O Posts")
+        plt.ylabel("Average Price")
+        for i, subModel in enumerate(subModels):
+            plt.annotate(subModel, (posts[i], prices[i]))
+        plt.show()
     elif (ans == 'e'):
         valid = False
         while (not valid):
