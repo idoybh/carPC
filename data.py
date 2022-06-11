@@ -98,7 +98,7 @@ while True:
         axs[1,0].set_ylabel("Price")
         axs[1,0].scatter(horses, prices, s=5)
 
-        # average price per hand
+        # Average price per hand
         maxH = int(unifiedDB['Hand'].max())
         hands = []
         prices.clear()
@@ -112,6 +112,52 @@ while True:
         axs[1,1].set_xlabel("Hand")
         axs[1,1].set_ylabel("Price")
         axs[1,1].bar(hands, prices)
+        fig.show()
+
+        input("Press Enter to continue")
+
+        # Average price per engine volume
+        fig, axs = plt.subplots(2, 2)
+        maxV = int(unifiedDB['Engine Volume'].max())
+        minV = int(unifiedDB.loc[unifiedDB['Engine Volume'] > 0]['Engine Volume'].min())
+        volumes = []
+        prices.clear()
+        for volume in range(minV, maxV + 1):
+            volumes.append(volume)
+            prices.append(unifiedDB.loc[unifiedDB['Engine Volume'] == volume]['Price'].mean())
+        axs[0,0].set_title("Average price per engine volume")
+        axs[0,0].set_xlabel("Engine Volume")
+        axs[0,0].set_ylabel("Price")
+        axs[0,0].scatter(volumes, prices, s=5)
+
+        # Average price per gear type
+        gears = [ 'Automatic', 'Manual' ]
+        prices.clear()
+        prices.append(unifiedDB.loc[unifiedDB['Gear'] == True]['Price'].mean())
+        prices.append(unifiedDB.loc[unifiedDB['Gear'] == False]['Price'].mean())
+        axs[0,1].set_title("Average price per gear type")
+        axs[0,1].set_ylabel("Price")
+        axs[0,1].bar(gears, prices)
+
+        # Average price per previous ownership
+        subDB = unifiedDB.loc['Used'] # only used cars have prev ownership
+        ownerships = [ 'Private', 'non-private' ]
+        prices.clear()
+        prices.append(subDB.loc[subDB['Previous Ownership'] == True]['Price'].mean())
+        prices.append(subDB.loc[subDB['Previous Ownership'] == False]['Price'].mean())
+        axs[1,0].set_title("Average price per previous ownership")
+        axs[1,0].set_ylabel("Price")
+        axs[1,0].bar(ownerships, prices)
+
+        # avg price by engine type
+        types = unifiedDB['Engine Type'].dropna().drop_duplicates().to_list()
+        types.sort()
+        prices.clear()
+        for eType in types:
+            prices.append(unifiedDB.loc[unifiedDB['Engine Type'] == eType]['Price'].mean())
+        axs[1,1].set_title("Average price per engine type")
+        axs[1,1].set_ylabel("Price")
+        axs[1,1].bar(types, prices)
         fig.show()
 
         input("Press Enter to continue")
@@ -159,6 +205,7 @@ while True:
 
         # !! using posts and makers lists from previous graphs !!
         maxP = unifiedDB['Price'].max()
+        ttlAverage = unifiedDB['Price'].mean()
         colors = plt.cm.gist_ncar(np.linspace(0,1,len(makers)))
         pricesSum = []
         prices.clear()
@@ -167,6 +214,10 @@ while True:
             pricesSum.append((pRows.sum() / maxP) * 200)
             prices.append(pRows.mean())
         plt.scatter(posts, prices, pricesSum, c=colors, alpha=0.4)
+        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
+        handles = [plt.Line2D((0,0), (1,1), color='red', linestyle="--")]
+        labels = ['average price']
+        plt.legend(handles, labels)
         plt.title("Maker estimated market value\nsize = sum of all prices")
         plt.xlabel("N/O Posts")
         plt.ylabel("Average Price")
