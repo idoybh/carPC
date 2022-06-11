@@ -206,7 +206,7 @@ while True:
         # !! using posts and makers lists from previous graphs !!
         maxP = unifiedDB['Price'].max()
         ttlAverage = unifiedDB['Price'].mean()
-        colors = plt.cm.gist_ncar(np.linspace(0,1,len(makers)))
+        colors = plt.cm.gist_ncar(np.linspace(0,0.9,len(makers)))
         pricesSum = []
         prices.clear()
         for maker in makers:
@@ -269,6 +269,34 @@ while True:
         plt.xlabel("Model")
         plt.ylabel("Price")
         plt.show()
+
+        # average price ; N/O Posts ; sum of all prices
+        #       y       ;     x     ;      size
+
+        # !! using models list from previous graph !!
+        ttlAverage = subDB['Price'].mean()
+        maxP = subDB['Price'].max()
+        prices.clear()
+        pricesSum = []
+        posts = []
+        colors = plt.cm.gist_ncar(np.linspace(0,0.9,len(models)))
+        for model in models:
+            pRows = subDB.loc[subDB['Model'] == model]['Price']
+            prices.append(pRows.mean())
+            pricesSum.append((pRows.sum() / maxP) * 200)
+            posts.append(len(subDB.loc[subDB['Model'] == model]))
+        plt.scatter(posts, prices, pricesSum, c=colors, alpha=0.4)
+        plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
+        handles = [plt.Line2D((0,0), (1,1), color='red', linestyle="--")]
+        labels = ['average price']
+        plt.legend(handles, labels)
+        plt.title("Model estimated market value\nsize = sum of all prices")
+        plt.xlabel("N/O Posts")
+        plt.ylabel("Average Price")
+        for i, model in enumerate(models):
+            plt.annotate(model, (posts[i], prices[i]))
+        plt.show()
+            
     elif (ans == '3'): # by model
         time.sleep(1)
     elif (ans == 'e'):
