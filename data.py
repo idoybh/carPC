@@ -238,7 +238,16 @@ while True:
                                    "Engine Type", rangeList=types)
 
         fig.show()
+        input("Press Enter to continue")
 
+        fig, axs = plt.subplots(1, 2)
+        # Average price per n/o doors
+        plot_price_per_param_graph(unifiedDB, axs[0], 'Doors', "Average price per N/O doors", "N/O Doors")
+
+        # Average price per n/o seats
+        plot_price_per_param_graph(unifiedDB, axs[1], 'Seats', "Average price per N/O seats", "N/O Seats")
+
+        fig.show()
         input("Press Enter to continue")
 
         # average prices per maker (new cars)
