@@ -98,6 +98,11 @@ def plot_price_per_param_graph(db, axs, locStr, title, xLabel, kind = "bar",
         z = np.polyfit(vals, prices, 2)
         p = np.poly1d(z)
         axs.plot(vals, p(vals), c="red", alpha=0.6)
+        colors = { 'New':'blue', 'Used':'red', 'New avg':'blue', 'Used avg':'red' }
+        labels = [ "Trend" ]
+        handles = [ ]
+        handles.append(plt.Line2D((0,0),(1,1), color="red", alpha=0.6))
+        axs.legend(handles, labels)
     elif (kind == "line"):
         axs.line(vals, prices)
     elif (kind == "plot"):
