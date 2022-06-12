@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from datetime import date
 
 def find_outliers_limit(df, col):
@@ -311,6 +312,11 @@ while True:
         # !! using makers list from previous graphs !!
         plot_value_graph(unifiedDB, makers, 'Maker', "Maker estimated market value")
 
+        # finally, but most importantly, show a correlation matrix
+        cGraph = sns.heatmap(unifiedDB.corr(), annot = True)
+        cGraph.set(title="Correlation matrix")
+        plt.show()
+        
     elif (ans == '2'): # by maker
         makers = unifiedDB['Maker'].drop_duplicates().to_list()
         makers.sort()
