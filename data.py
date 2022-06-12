@@ -78,8 +78,14 @@ def plot_price_per_param_graph(db, axs, locStr, title, xLabel, kind = "bar",
         rangeList = range(minV, maxV + 1)
     for i in rangeList:
         val = db.loc[db[locStr] == i]['Price'].mean()
+        if (np.isnan(val)):
+            continue
+        val = int(val)
         prices.append(val)
-        vals.append(i)
+        if (len(rangeList) == 0):
+            vals.append(int(i))
+        else:
+            vals.append(i)
     if (ticks > 0):
         axs.set_xticks(range(minV, maxV + 1, ticks))
     axs.set_title(title)
@@ -89,6 +95,9 @@ def plot_price_per_param_graph(db, axs, locStr, title, xLabel, kind = "bar",
         axs.bar(vals, prices)
     elif (kind == "scatter"):
         axs.scatter(vals, prices, s=5)
+        z = np.polyfit(vals, prices, 2)
+        p = np.poly1d(z)
+        axs.plot(vals, p(vals), c="red", alpha=0.6)
     elif (kind == "line"):
         axs.line(vals, prices)
     elif (kind == "plot"):
