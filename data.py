@@ -133,7 +133,7 @@ def plot_value_graph(db, dataList, dataLocStr, title):
     for item in dataList:
         pRows = db.loc[db[dataLocStr] == item]['Price']
         prices.append(pRows.mean())
-        pricesSum.append((pRows.sum() / maxSum) * 1000)
+        pricesSum.append((pRows.sum() / maxSum) * 2000)
         posts.append(len(db.loc[db[dataLocStr] == item]))
     plt.scatter(posts, prices, pricesSum, c=colors, alpha=0.4)
     plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
@@ -238,7 +238,7 @@ while True:
 
         plt.show()
 
-        fig, axs = plt.subplots(2, 2) # figure n.o 2
+        fig, axs = plt.subplots(3, 2) # figure n.o 2
         # Average price per engine volume
         plot_price_per_param_graph(unifiedDB, axs[0,0], 'Engine Volume', "Average price per engine volume",
                                    "Engine Volume", "scatter")
@@ -248,13 +248,17 @@ while True:
                                     "Average price per gear type")
 
         # Average price per previous ownership
-        plot_price_per_binary_graph(unifiedDB.loc['Used'], axs[1,0], ['Private','Non-private'], 'Gear',
+        plot_price_per_binary_graph(unifiedDB.loc['Used'], axs[1,0], ['Private','Non-private'], 'Previous Ownership',
                                     "Average price per previous ownership")
+
+        # Average price per current ownership
+        plot_price_per_binary_graph(unifiedDB.loc['Used'], axs[1,1], ['Private','Non-private'], 'Ownership',
+                                    "Average price per current ownership")
 
         # Average price per engine type
         types = unifiedDB['Engine Type'].dropna().drop_duplicates().to_list()
         types.sort()
-        plot_price_per_param_graph(unifiedDB, axs[1,1], 'Engine Type', "Average price per engine type",
+        plot_price_per_param_graph(unifiedDB, axs[2,0], 'Engine Type', "Average price per engine type",
                                    "Engine Type", rangeList=types)
 
         plt.show()
@@ -310,7 +314,7 @@ while True:
         plot_value_graph(unifiedDB, makers, 'Maker', "Maker estimated market value")
 
         # finally, but most importantly, show a correlation matrix
-        cGraph = sns.heatmap(unifiedDB.corr(), annot = True)
+        cGraph = sns.heatmap(unifiedDB.corr(), annot=True, cmap="coolwarm")
         cGraph.set(title="Correlation matrix")
         plt.show()
         
