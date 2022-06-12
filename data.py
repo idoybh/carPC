@@ -236,8 +236,7 @@ while True:
         # Average price per hand
         plot_price_per_param_graph(unifiedDB, axs[1,1], 'Hand', "Average price per horse power", "Hand", ticks=1)
 
-        fig.show()
-        input("Press Enter to continue")
+        plt.show()
 
         fig, axs = plt.subplots(2, 2) # figure n.o 2
         # Average price per engine volume
@@ -258,8 +257,7 @@ while True:
         plot_price_per_param_graph(unifiedDB, axs[1,1], 'Engine Type', "Average price per engine type",
                                    "Engine Type", rangeList=types)
 
-        fig.show()
-        input("Press Enter to continue")
+        plt.show()
 
         fig, axs = plt.subplots(1, 2)
         # Average price per n/o doors
@@ -268,8 +266,7 @@ while True:
         # Average price per n/o seats
         plot_price_per_param_graph(unifiedDB, axs[1], 'Seats', "Average price per N/O seats", "N/O Seats", ticks=1)
 
-        fig.show()
-        input("Press Enter to continue")
+        plt.show()
 
         # average prices per maker (new cars)
         # here we only want new cars
