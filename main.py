@@ -14,12 +14,13 @@ while True:
     print("q. Quit")
     ans = input("> ")
     if (ans == '1'):
-        import scrape
+        exec(open("scrape.py").read())
         time.sleep(5)
     elif (ans == '2'):
+        exec(open("data.py").read())
         import data
     elif (ans == '3'):
-        import ML
+        exec(open("ML.py").read())
     elif (ans == 'q'):
         exit(0)
     else:
