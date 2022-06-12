@@ -115,15 +115,19 @@ def plot_value_graph(db, dataList, dataLocStr, title):
     # average price ; N/O Posts ; sum of all prices
     #       y       ;     x     ;      size
     ttlAverage = db['Price'].mean()
-    maxP = db['Price'].max()
+    maxSum = 0
     prices = []
     pricesSum = []
     posts = []
     colors = plt.cm.gist_ncar(np.linspace(0,0.9,len(dataList)))
     for item in dataList:
+        curr = db.loc[db[dataLocStr] == item]['Price'].sum()
+        if (curr > maxSum):
+            maxSum = curr
+    for item in dataList:
         pRows = db.loc[db[dataLocStr] == item]['Price']
         prices.append(pRows.mean())
-        pricesSum.append((pRows.sum() / maxP) * 200)
+        pricesSum.append((pRows.sum() / maxSum) * 1000)
         posts.append(len(db.loc[db[dataLocStr] == item]))
     plt.scatter(posts, prices, pricesSum, c=colors, alpha=0.4)
     plt.axhline(y=ttlAverage, linewidth=1, linestyle='--', color='r')
