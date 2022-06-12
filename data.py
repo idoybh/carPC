@@ -67,7 +67,7 @@ def plot_avg_graph(db, dataList, dataLocStr, title, xLabel):
         plt.show()
 
 def plot_price_per_param_graph(db, axs, locStr, title, xLabel, kind = "bar",
-        minVal = 0, rangeStart = -1, rangeEnd = -1, rangeList = []):
+        minVal = 0, rangeStart = -1, rangeEnd = -1, ticks = -1, rangeList = []):
     minV, maxV = rangeStart, rangeEnd
     if ((rangeStart == -1 or rangeEnd == -1) and len(rangeList) == 0):
         maxV = int(db[locStr].max())
@@ -80,6 +80,8 @@ def plot_price_per_param_graph(db, axs, locStr, title, xLabel, kind = "bar",
         val = db.loc[db[locStr] == i]['Price'].mean()
         prices.append(val)
         vals.append(i)
+    if (ticks > 0):
+        axs.set_xticks(range(minV, maxV + 1, ticks))
     axs.set_title(title)
     axs.set_xlabel(xLabel)
     axs.set_ylabel("Price")
@@ -213,7 +215,7 @@ while True:
                                    "Horse Power", "scatter")
 
         # Average price per hand
-        plot_price_per_param_graph(unifiedDB, axs[1,1], 'Hand', "Average price per horse power", "Hand")
+        plot_price_per_param_graph(unifiedDB, axs[1,1], 'Hand', "Average price per horse power", "Hand", ticks=1)
 
         fig.show()
         input("Press Enter to continue")
@@ -242,10 +244,10 @@ while True:
 
         fig, axs = plt.subplots(1, 2)
         # Average price per n/o doors
-        plot_price_per_param_graph(unifiedDB, axs[0], 'Doors', "Average price per N/O doors", "N/O Doors")
+        plot_price_per_param_graph(unifiedDB, axs[0], 'Doors', "Average price per N/O doors", "N/O Doors", ticks=1)
 
         # Average price per n/o seats
-        plot_price_per_param_graph(unifiedDB, axs[1], 'Seats', "Average price per N/O seats", "N/O Seats")
+        plot_price_per_param_graph(unifiedDB, axs[1], 'Seats', "Average price per N/O seats", "N/O Seats", ticks=1)
 
         fig.show()
         input("Press Enter to continue")
