@@ -4,6 +4,8 @@ import time
 import math
 import pandas as pd
 import numpy as np
+from sklearn import preprocessing
+from sklearn import compose
 
 def find_outliers_limit(df, col):
     q25 = np.percentile(df[col], 25)
@@ -51,7 +53,28 @@ while True:
     print()
 
     if (ans == '1'):
-        time.sleep(1)
+        XCols = ["Maker", "Year", "Model", "SubModel", "Gear", "Engine Type", "Engine Volume", "Mileage", "Hand", "Ownership", "Previous Ownership", "Doors", "Seats"]
+        XType = ["t"    , "n"   , "t"    , "x"       , "b"   , "t"          , "n"            , "n"      , "n"   , "b"        , "b"                 , "n"    , "n"]
+        X = unifiedDB[XCols] # Input features
+        Y = unifiedDB['Price'] # Prediction
+        # normalizing data
+        num_scaler = preprocessing.MinMaxScaler()
+        cat_scaler = preprocessing.OrdinalEncoder()
+        NCols = []
+        TCols = []
+        for i, col in enumerate(XCols):
+            if (XType[i] == 'x'):
+                continue
+            if (XType[i] == 't'):
+                TCols.append(col)
+                continue
+            NCols.append(col)
+        trans = compose.ColumnTransformer(transformers = [
+            ("num", num_scaler, NCols),
+            ("cat", cat_scaler, TCols)],
+            remainder="drop"
+        )
+        X = pd.DataFrame(trans.fit_transform(X), columns=trans.get_feature_names_out())
     elif (ans == '2'):
         time.sleep(1)
     elif (ans == 'q'):
