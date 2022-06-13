@@ -31,9 +31,14 @@ def plot_avg_graph(db, dataList, dataLocStr, title, xLabel):
     if ('New' in db.index or 'Old' in db.index):
         selectedDB = db.loc['New':'Old'] # plotting non used cars
         found = True
-    ans = input("Select a year (2012-2022 or a = all): ")
-    if (ans != 'a'):
-        selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
+    while (True):
+        ans = input("Select a year (2012-2022 or a = all): ")
+        if (ans == 'a'):
+            break
+        if (ans.isnumeric() and int(ans) >= 2012 and int(ans) <= 2022):
+            selectedDB = selectedDB.loc[selectedDB['Year'] == int(ans)]
+            break
+        print("Invalid input")
     if (found):
         ttlAverage = selectedDB['Price'].mean()        
         for item in dataList:
