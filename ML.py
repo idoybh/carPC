@@ -90,6 +90,16 @@ def load_model(db):
     print("Model loaded")
     return model
 
+def choose_list(db, locStr):
+    items = db[locStr].drop_duplicates().to_list()
+    items.sort()
+    print("Choose a" + locStr.lower() + ": ")
+    for i, item in enumerate(items):
+        print(str(i) + ". " + str(item))
+    item = items[int(input("> "))]
+    subDB = db.loc[db[locStr] == item]
+    return subDB, item
+
 print()
 print("Reading databases")
 databases = []
@@ -159,6 +169,48 @@ while True:
 
     elif (ans == '2' and modelExists):
         ml_model = load_model(unifiedDB)
+
+        subDB, maker = choose_list(unifiedDB, 'Maker')
+        subDB, model = choose_list(subDB, 'Model')
+        year = int(input("Year [2012-2022]: "))
+        subDB, eType = choose_list(subDB, 'Engine Type')
+        eVolume = int(input("Engine volume [cm³]: "))
+        horse = int(input("Horse power: "))
+        mileage = int(input("Mileage [km]: "))
+        hand = int(input("N.O Hands: "))
+        isAutoGear = input("Automatic gear [Y/n]: ") != 'n'
+        isPrivate = input("Private ownership [Y/n]: ") != 'n'
+        isPrevPrivate = input("Previous private ownership [Y/n]: ") != 'n'
+
+        data_cols = [ "Maker", "Year", "Model", "Gear", "Engine Volume", "Engine Type", "Horse Power", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price" ]
+        X = pd.DataFrame(columns=data_cols)
+        X.loc[0] = {
+            "Maker" : maker,
+            "Year" : year,
+            "Model" : model,
+            "Gear" : isAutoGear,
+            "Engine Type" : eType,
+            "Engine Volume" : eVolume,
+            "Horse Power": horse,
+            "Mileage" : mileage,
+            "Hand" : hand,
+            "Ownership" : isPrivate,
+            "Previous Ownership" : isPrevPrivate,
+            "Price" : 0, # dummy value so pre-fit scaler won't get mad
+        }
+
+        scaler = load(open(SCALER_FILE_NAME, "rb"))
+        encoder = load(open(ENCODER_FILE_NAME, "rb"))
+        print("Summary:")
+        print(X.drop('Price', axis=1))
+        print()
+        X = norm_db(X, save=False, enc=encoder, sca=scaler)
+        X.drop('Price', axis=1, inplace=True)
+        X['Price'] = ml_model.predict(X)
+        NCols = ['Year', 'Engine Volume', 'Horse Power', 'Mileage', 'Hand', 'Gear', 'Ownership', 'Previous Ownership', 'Price']
+        res = pd.DataFrame(scaler.inverse_transform(X[NCols]), columns=NCols).iloc[0]['Price']
+        print("Predicted price is: " + str(round(res)))
+        input("Press Enter to go back to the menu")
 
     elif (ans == '3' and modelExists):
         model = load_model(unifiedDB)
