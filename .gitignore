@@ -133,3 +133,6 @@ dmypy.json
 
 # Backup files
 *.tar.gz
+
+# Model checkpoints
+model/
