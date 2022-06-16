@@ -7,15 +7,13 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from sklearn import preprocessing, compose
+from sklearn import ensemble
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Activation
+from sklearn.preprocessing import OrdinalEncoder
 from pickle import dump, load
 
 MODEL_FILE_NAME = "model/model.h5"
-ENCODER_FILE_NAME = "model/encoder.pkl"
-SCALER_FILE_NAME = "model/scaler.pkl"
 
 if (not os.path.exists("model")):
     os.mkdir("model")
@@ -32,10 +30,7 @@ def find_outliers_limit(df, col):
 def remove_outlier(df, col, upper, lower):
     return np.where(df[col] > upper, upper, np.where(df[col] < lower, lower, df[col]))
 
-def norm_db(db, save=True, enc=None, sca=None):
-    # normalizing data
-    NCols = ['Year', 'Engine Volume', 'Horse Power', 'Mileage', 'Hand', 'Gear', 'Ownership', 'Previous Ownership', 'Price']
-    TCols = ['Maker', 'Model', 'Engine Type']
+def norm_db(db):
     # taking care of non-common columns with nan values
     db['Horse Power'].fillna(0, inplace = True)
     db['Mileage'].fillna(0, inplace = True)
@@ -44,50 +39,33 @@ def norm_db(db, save=True, enc=None, sca=None):
     db['Ownership'].fillna(True, inplace = True)
     db['Previous Ownership'].fillna(True, inplace = True)
     db['Gear'].fillna(True, inplace = True)
-    encoder = enc
-    scaler = sca
-    catDB = db[TCols]
-    numDB = db[NCols]
-    if (enc == None or sca == None):
-        encoder = preprocessing.OrdinalEncoder()
-        scaler = preprocessing.StandardScaler()
-        catDB = pd.DataFrame(encoder.fit_transform(db[TCols]), columns=TCols)
-        numDB = pd.DataFrame(scaler.fit_transform(db[NCols]), columns=NCols)
-    else:
-        catDB = pd.DataFrame(encoder.transform(db[TCols]), columns=TCols)
-        numDB = pd.DataFrame(scaler.transform(db[NCols]), columns=NCols)
-    if (save):
-        if (not os.path.exists(ENCODER_FILE_NAME)):
-            open(ENCODER_FILE_NAME, 'x')
-        if (not os.path.exists(SCALER_FILE_NAME)):
-            open(SCALER_FILE_NAME, 'x')
-        # saving normalization rates for later use
-        dump(encoder, open(ENCODER_FILE_NAME, "wb"))
-        dump(scaler, open(SCALER_FILE_NAME, "wb"))
-    X = pd.concat([numDB, catDB], axis=1)
-    return X
-
-def prep_db(db, save=True):
-    X = norm_db(db, save)
-    y = X['Price']
-    X.drop('Price', axis=1, inplace=True)
+    # Handling categorical columns (and dropping irrelevant columns - no corr to price)
+    encoder = OrdinalEncoder()
+    NCols = ['Year', 'Engine Volume', 'Horse Power', 'Mileage', 'Hand', 'Gear', 'Ownership', 'Previous Ownership']
+    TCols = ['Maker', 'Model', 'Engine Type']
+    catDB = pd.DataFrame(encoder.fit_transform(db[TCols]), columns=TCols)
+    numDB = db[NCols].reset_index(drop=True)
+    X = pd.concat([catDB, numDB], axis=1)
+    y = db['Price'].reset_index(drop=True)
     return X, y
 
 def create_model(db):
-    X, y = prep_db(db)
-    # building a 4-layer neural net
-    model = Sequential()
-    model.add(Dense(16, input_dim=X.shape[1], activation='relu'))
-    model.add(Dense(8, activation='relu'))
-    model.add(Dense(4, activation='relu'))
-    model.add(Dense(1, activation='linear'))
-    opt = tf.keras.optimizers.Adam(learning_rate=0.0001)
-    model.compile(loss='mean_squared_error', optimizer='adam')
+    X, y = norm_db(db)
+    cat_mask = [True] * 2 + [False] * 8
+    model = ensemble.RandomForestRegressor(
+        n_estimators=1000,
+        n_jobs=-1,
+        verbose=1,
+    )
     return model, X, y
 
 def load_model(db):
     print("Loading the model...")
-    model = keras.models.load_model(MODEL_FILE_NAME)
+    model = load(open(MODEL_FILE_NAME, "rb"))
+    X, y = norm_db(db)
+    X, X_test, y, y_test = train_test_split(X, y, test_size=0.1, random_state=25)
+    mse = mean_squared_error(y_test, model.predict(X_test))
+    print("The mean squared error (MSE) on test set: {:.4f}".format(mse))
     print("Model loaded")
     return model
 
@@ -152,28 +130,14 @@ while True:
             model = load_model(unifiedDB)
             print("Current Loss: " + str(model.evaluate(X, y)))
         # training the model
-        epoch_num = 30
-        batches = 10
-        ans = input("N.O Epochs to run [" + str(epoch_num) + "]: ")
-        if (ans != '' and ans.isnumeric()):
-            epoch_num = int(ans)
         print("Training...")
-        X, X_test, y, y_test = train_test_split(X, y, test_size=0.15, shuffle=True)
-        history = model.fit(
-            X, y, validation_data=(X_test, y_test),
-            verbose=1, epochs=epoch_num,
-            batch_size=batches, shuffle=True
-        )
-        print("Loss: " + str(model.evaluate(X, y)))
-        print("Done training, saving the last checkpoint")
-        model.save(MODEL_FILE_NAME, save_format='h5')
-        plt.plot(history.history['loss'])
-        plt.plot(history.history['val_loss'])
-        plt.title('Model History')
-        plt.ylabel('loss')
-        plt.xlabel('epoch')
-        plt.legend()
-        plt.show()
+        model.fit(X, y)
+        print("Done training. Saving the model")
+        dump(model, open(MODEL_FILE_NAME, "wb"))
+        X, X_test, y, y_test = train_test_split(X, y, test_size=0.1, random_state=25)
+        # The mean squared error
+        mse = mean_squared_error(y_test, model.predict(X_test))
+        print("Mean squared error (MSE): {:.4f}".format(mse))
         input("Press Enter to go back to the menu")
 
     elif (ans == '2' and modelExists):
@@ -191,12 +155,12 @@ while True:
         isPrivate = input("Private ownership [Y/n]: ") != 'n'
         isPrevPrivate = input("Previous private ownership [Y/n]: ") != 'n'
 
-        data_cols = [ "Maker", "Year", "Model", "Gear", "Engine Volume", "Engine Type", "Horse Power", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price" ]
+        data_cols = [ "Maker", "Model", "Year", "Gear", "Engine Volume", "Engine Type", "Horse Power", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price" ]
         X = pd.DataFrame(columns=data_cols)
         X.loc[0] = {
             "Maker" : maker,
-            "Year" : year,
             "Model" : model,
+            "Year" : year,
             "Gear" : isAutoGear,
             "Engine Type" : eType,
             "Engine Volume" : eVolume,
@@ -208,24 +172,32 @@ while True:
             "Price" : 0, # dummy value so pre-fit scaler won't get mad
         }
 
-        scaler = load(open(SCALER_FILE_NAME, "rb"))
-        encoder = load(open(ENCODER_FILE_NAME, "rb"))
         print("Summary:")
         print(X.drop('Price', axis=1))
         print()
-        X = norm_db(X, save=False, enc=encoder, sca=scaler)
-        X.drop('Price', axis=1, inplace=True)
+        X, y = norm_db(X)
         X['Price'] = ml_model.predict(X)
-        NCols = ['Year', 'Engine Volume', 'Horse Power', 'Mileage', 'Hand', 'Gear', 'Ownership', 'Previous Ownership', 'Price']
-        res = pd.DataFrame(scaler.inverse_transform(X[NCols]), columns=NCols).iloc[0]['Price']
-        print("Predicted price is: " + str(round(res)))
+        print("Predicted price is: " + str(round(X.loc[0]['Price'])))
         input("Press Enter to go back to the menu")
 
     elif (ans == '3' and modelExists):
         model = load_model(unifiedDB)
-        X, y = prep_db(unifiedDB, False)
-        res = model.predict(X)
+        X, y = norm_db(unifiedDB)
+        X['Price'] = model.predict(X)
 
+        plt.plot(np.arange(0, len(X), step=1), X['Price'])
+        plt.plot(np.arange(0, len(y), step=1), y, c="green", alpha=0.5)
+        plt.title("Model Evaluation")
+        plt.ylabel('Price')
+        plt.xlabel('Entry')
+        colors = { 'Results':'blue', 'Actual':'green' }
+        labels = list(colors.keys())
+        handles = []
+        for i, label in enumerate(labels):
+            handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[i]]))
+        plt.legend(handles, labels)
+        plt.show()
+        
         input("Press Enter to go back to the menu")
         
     elif (ans == 'q'):
