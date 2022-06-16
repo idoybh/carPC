@@ -81,6 +81,7 @@ def create_model(db):
     model.add(Dense(8, activation='relu'))
     model.add(Dense(4, activation='relu'))
     model.add(Dense(1, activation='linear'))
+    opt = tf.keras.optimizers.Adam(learning_rate=0.0001)
     model.compile(loss='mean_squared_error', optimizer='adam')
     return model, X, y
 
@@ -149,6 +150,7 @@ while True:
         model, X, y = create_model(unifiedDB)
         if (resume):
             model = load_model(unifiedDB)
+            print("Current Loss: " + str(model.evaluate(X, y)))
         # training the model
         epoch_num = 30
         batches = 10
@@ -156,8 +158,8 @@ while True:
         if (ans != '' and ans.isnumeric()):
             epoch_num = int(ans)
         print("Training...")
-        X, X_test, y, y_test = train_test_split(X, y, test_size=0.2, shuffle=True)
-        model.fit(
+        X, X_test, y, y_test = train_test_split(X, y, test_size=0.15, shuffle=True)
+        history = model.fit(
             X, y, validation_data=(X_test, y_test),
             verbose=1, epochs=epoch_num,
             batch_size=batches, shuffle=True
@@ -165,6 +167,13 @@ while True:
         print("Loss: " + str(model.evaluate(X, y)))
         print("Done training, saving the last checkpoint")
         model.save(MODEL_FILE_NAME, save_format='h5')
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('Model History')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend()
+        plt.show()
         input("Press Enter to go back to the menu")
 
     elif (ans == '2' and modelExists):
@@ -217,7 +226,7 @@ while True:
         X, y = prep_db(unifiedDB, False)
         res = model.predict(X)
 
-
+        input("Press Enter to go back to the menu")
         
     elif (ans == 'q'):
         break # back to main menu
