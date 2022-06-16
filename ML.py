@@ -197,6 +197,8 @@ while True:
             handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[i]]))
         plt.legend(handles, labels)
         plt.show()
+
+        # TODO: Output feature importance 
         
         input("Press Enter to go back to the menu")
         

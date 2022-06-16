@@ -66,6 +66,7 @@ def plot_avg_graph(db, dataList, dataLocStr, title, xLabel):
         handles.append(plt.Rectangle((0,0),1,1, color=colors[labels[1]]))
         handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[2]], linestyle="--"))
         handles.append(plt.Line2D((0,0),(1,1), color=colors[labels[3]], linestyle="--"))
+        plt.xticks(rotation='vertical')
         plt.legend(handles, labels)
         plt.title(title)
         plt.xlabel(xLabel)
@@ -289,6 +290,7 @@ while True:
         for maker in makers:
             prices.append(subDB.loc[subDB['Maker'] == maker]['Price'].mean())
         plt.bar(makers, prices)
+        plt.xticks(rotation='vertical')
         plt.title("Average price per maker (" + str(rndYear) + ")")
         plt.xlabel("Maker")
         plt.ylabel("Price")
@@ -307,6 +309,7 @@ while True:
         colors = { 'New':'blue', 'Used':'red' }
         labels = list(colors.keys())
         handles = [plt.Rectangle((0,0),1,1, color=colors[label]) for label in labels]
+        plt.xticks(rotation='vertical')
         plt.title("N.O Posts per maker")
         plt.xlabel("Makers")
         plt.ylabel("Posts")
