@@ -185,6 +185,7 @@ while True:
         X, y = norm_db(unifiedDB)
         X['Price'] = model.predict(X)
 
+        # Show a plot comparing actual and predicted values
         plt.plot(np.arange(0, len(X), step=1), X['Price'])
         plt.plot(np.arange(0, len(y), step=1), y, c="green", alpha=0.5)
         plt.title("Model Evaluation")
@@ -198,8 +199,20 @@ while True:
         plt.legend(handles, labels)
         plt.show()
 
-        # TODO: Output feature importance 
-        
+        # Show a plot of feature importances
+        print("Computing feature importances")
+        X.drop('Price', axis=1, inplace=True)
+        importances = list(model.feature_importances_)
+        features = []
+        for col in X:
+            features.append(col)
+        plt.title("Feature importances")
+        plt.ylabel("Importance")
+        plt.xlabel("Feature")
+        plt.xticks(rotation = 25)
+        plt.bar(features, importances)
+        plt.show()
+
         input("Press Enter to go back to the menu")
         
     elif (ans == 'q'):
