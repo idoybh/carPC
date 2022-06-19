@@ -322,7 +322,17 @@ while True:
         plot_value_graph(unifiedDB, makers, 'Maker', "Maker estimated market value")
 
         # finally, but most importantly, show a correlation matrix
-        cGraph = sns.heatmap(unifiedDB.corr(), annot=True, cmap="coolwarm")
+        # we need to take care of null values
+        unifiedDB['Horse Power'].fillna(0, inplace = True)
+        unifiedDB['Mileage'].fillna(0, inplace = True)
+        unifiedDB['Hand'].fillna(0, inplace = True)
+        unifiedDB['Engine Type'].fillna("Benzene", inplace = True)
+        unifiedDB['Ownership'].fillna(True, inplace = True)
+        unifiedDB['Previous Ownership'].fillna(True, inplace = True)
+        unifiedDB['Gear'].fillna(True, inplace = True)
+
+        NCols = ['Year', 'Engine Volume', 'Horse Power', 'Mileage', 'Hand', 'Gear', 'Ownership', 'Previous Ownership', 'Price']
+        cGraph = sns.heatmap(unifiedDB[NCols].corr(), annot=True, cmap="coolwarm")
         cGraph.set(title="Correlation matrix")
         plt.show()
         
