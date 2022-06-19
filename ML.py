@@ -9,7 +9,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn import ensemble
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.preprocessing import OrdinalEncoder
 from pickle import dump, load
 
@@ -49,21 +49,39 @@ def norm_db(db):
     y = db['Price'].reset_index(drop=True)
     return X, y
 
-def create_model(db):
+def create_model(db, iter):
     X, y = norm_db(db)
-    cat_mask = [True] * 2 + [False] * 8
-    model = ensemble.RandomForestRegressor(
-        n_estimators=1000,
-        n_jobs=-1,
-        verbose=1,
+    n_estimators = [5,7,11,15,20,40,50,70,100] # number of trees in the random forest
+    max_features = [None, 'sqrt'] # number of features in consideration at every split
+    max_depth = [int(x) for x in np.linspace(10, 120, num=12)] # maximum number of levels allowed in each decision tree
+    max_depth.append(None)
+    min_samples_split = [2, 6, 10] # minimum sample number to split a node
+    min_samples_leaf = [1, 3, 4] # minimum sample number that can be stored in a leaf node
+    bootstrap = [True, False] # method used to sample data points
+    rnd_h_parameters = {
+        'n_estimators': n_estimators,
+        'max_features': max_features,
+        'max_depth': max_depth,
+        'min_samples_split': min_samples_split,
+        'min_samples_leaf': min_samples_leaf,
+        'bootstrap': bootstrap
+    }
+    model = ensemble.RandomForestRegressor()
+    model_rnd = RandomizedSearchCV(
+        estimator=model,
+        param_distributions=rnd_h_parameters,
+        n_iter=iter,
+        verbose=2,
+        random_state=35,
+        n_jobs=-1
     )
-    return model, X, y
+    return model_rnd, X, y
 
 def load_model(db):
     print("Loading the model...")
     model = load(open(MODEL_FILE_NAME, "rb"))
     X, y = norm_db(db)
-    X, X_test, y, y_test = train_test_split(X, y, test_size=0.1, random_state=25)
+    X, X_test, y, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
     mse = mean_squared_error(y_test, model.predict(X_test))
     print("The mean squared error (MSE) on test set: {:.4f}".format(mse))
     print("Model loaded")
@@ -120,23 +138,35 @@ while True:
         if (not modelExists):
             ans = "y"
         else:
-            ans = input("Do you want to retrain the model (r = resume)? [r/y/N]: ")
-        if (ans != 'y' and ans != 'r'):
+            ans = input("Do you want to retrain the model? [y/N]: ")
+        if (ans != 'y'):
             continue
-        elif (ans == 'r'):
-            resume = True
-        model, X, y = create_model(unifiedDB)
-        if (resume):
-            model = load_model(unifiedDB)
-            print("Current Loss: " + str(model.evaluate(X, y)))
+        ans = input("How many tries? [200]: ")
+        if (ans == '' or not ans.isnumeric()):
+            ans = 200
+        model, X, y = create_model(unifiedDB, int(ans))
+
         # training the model
         print("Training...")
         model.fit(X, y)
-        print("Done training. Saving the model")
+        best_p = model.best_params_
+        print("Best hyper-parameters found: " + str(best_p))
+        print("Training the best model")
+        model = ensemble.RandomForestRegressor(
+            n_estimators=best_p['n_estimators'],
+            min_samples_split=best_p['min_samples_split'],
+            min_samples_leaf=best_p['min_samples_leaf'],
+            max_features=best_p['max_features'],
+            max_depth=best_p['max_depth'],
+            bootstrap=best_p['bootstrap'],
+            n_jobs=-1,
+            verbose=1,
+        )
+        model.fit(X, y)
+        print("Done training. Saving the best model")
         dump(model, open(MODEL_FILE_NAME, "wb"))
-        X, X_test, y, y_test = train_test_split(X, y, test_size=0.1, random_state=25)
         # The mean squared error
-        mse = mean_squared_error(y_test, model.predict(X_test))
+        mse = mean_squared_error(y, model.predict(X))
         print("Mean squared error (MSE): {:.4f}".format(mse))
         input("Press Enter to go back to the menu")
 
