@@ -30,18 +30,25 @@ def find_outliers_limit(df, col):
 def remove_outlier(df, col, upper, lower):
     return np.where(df[col] > upper, upper, np.where(df[col] < lower, lower, df[col]))
 
+def print_mse(model, X, y):
+    # The mean squared error
+    mse = mean_squared_error(y, model.predict(X))
+    print("Mean squared error (MSE): {:.4f}".format(mse))
+
 def norm_db(db):
     # taking care of non-common columns with nan values
     db['Horse Power'].fillna(0, inplace = True)
     db['Mileage'].fillna(0, inplace = True)
     db['Hand'].fillna(0, inplace = True)
+    db['Doors'].fillna(0, inplace = True)
+    db['Seats'].fillna(0, inplace = True)
     db['Engine Type'].fillna("Benzene", inplace = True)
     db['Ownership'].fillna(True, inplace = True)
     db['Previous Ownership'].fillna(True, inplace = True)
     db['Gear'].fillna(True, inplace = True)
     # Handling categorical columns (and dropping irrelevant columns - no corr to price)
     encoder = OrdinalEncoder()
-    NCols = ['Year', 'Engine Volume', 'Horse Power', 'Mileage', 'Hand', 'Gear', 'Ownership', 'Previous Ownership']
+    NCols = ['Year', 'Engine Volume', 'Horse Power', 'Mileage', 'Hand', 'Gear', 'Ownership', 'Previous Ownership', 'Doors', 'Seats']
     TCols = ['Maker', 'Model', 'Engine Type']
     catDB = pd.DataFrame(encoder.fit_transform(db[TCols]), columns=TCols)
     numDB = db[NCols].reset_index(drop=True)
@@ -72,7 +79,6 @@ def create_model(db, iter):
         param_distributions=rnd_h_parameters,
         n_iter=iter,
         verbose=2,
-        random_state=35,
         n_jobs=-1
     )
     return model_rnd, X, y
@@ -82,8 +88,7 @@ def load_model(db):
     model = load(open(MODEL_FILE_NAME, "rb"))
     X, y = norm_db(db)
     X, X_test, y, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
-    mse = mean_squared_error(y_test, model.predict(X_test))
-    print("The mean squared error (MSE) on test set: {:.4f}".format(mse))
+    print_mse(model, X_test, y_test)
     print("Model loaded")
     return model
 
@@ -165,9 +170,7 @@ while True:
         model.fit(X, y)
         print("Done training. Saving the best model")
         dump(model, open(MODEL_FILE_NAME, "wb"))
-        # The mean squared error
-        mse = mean_squared_error(y, model.predict(X))
-        print("Mean squared error (MSE): {:.4f}".format(mse))
+        print_mse(model, X, y)
         input("Press Enter to go back to the menu")
 
     elif (ans == '2' and modelExists):
@@ -181,11 +184,13 @@ while True:
         horse = int(input("Horse power: "))
         mileage = int(input("Mileage [km]: "))
         hand = int(input("N.O Hands: "))
+        doors = int(input("N.O Doors: "))
+        seats = int(input("N.O Seats: "))
         isAutoGear = input("Automatic gear [Y/n]: ") != 'n'
         isPrivate = input("Private ownership [Y/n]: ") != 'n'
         isPrevPrivate = input("Previous private ownership [Y/n]: ") != 'n'
 
-        data_cols = [ "Maker", "Model", "Year", "Gear", "Engine Volume", "Engine Type", "Horse Power", "Mileage", "Hand", "Ownership", "Previous Ownership", "Price" ]
+        data_cols = [ "Maker", "Model", "Year", "Gear", "Engine Volume", "Engine Type", "Horse Power", "Mileage", "Hand", "Doors", "Seats", "Ownership", "Previous Ownership", "Price" ]
         X = pd.DataFrame(columns=data_cols)
         X.loc[0] = {
             "Maker" : maker,
@@ -197,6 +202,8 @@ while True:
             "Horse Power": horse,
             "Mileage" : mileage,
             "Hand" : hand,
+            "Doors" : doors,
+            "Seats" : seats,
             "Ownership" : isPrivate,
             "Previous Ownership" : isPrevPrivate,
             "Price" : 0, # dummy value so pre-fit scaler won't get mad
