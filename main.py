@@ -25,4 +25,4 @@ while True:
         exit(0)
     else:
         print("Unrecognized option")
-        time.sleep(5)
+        time.sleep(3)

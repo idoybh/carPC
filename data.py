@@ -388,4 +388,4 @@ while True:
         break # back to main menu
     else:
         print("Unrecognized option")
-        time.sleep(5)
+        time.sleep(3)
