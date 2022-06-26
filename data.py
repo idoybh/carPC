@@ -240,7 +240,7 @@ while True:
                                    "Horse Power", "scatter")
 
         # Average price per hand
-        plot_price_per_param_graph(unifiedDB, axs[1,1], 'Hand', "Average price per horse power", "Hand", ticks=1)
+        plot_price_per_param_graph(unifiedDB, axs[1,1], 'Hand', "Average price per hand", "Hand", ticks=1)
 
         plt.show()
 
